@@ -95,17 +95,134 @@ button{background:#2b6cb0;color:#fff;border:none;font-weight:bold}
 
 <script>
 var profile={},records=[],reminders=[];
-try{profile=JSON.parse(localStorage.getItem('profile')||'{}');records=JSON.parse(localStorage.getItem('records')||'[]');reminders=JSON.parse(localStorage.getItem('reminders')||'[]')}catch(e){}
-function save(){localStorage.setItem('profile',JSON.stringify(profile));localStorage.setItem('records',JSON.stringify(records));localStorage.setItem('reminders',JSON.stringify(reminders))}
-function tab(t){['profile','records','reminders','share'].forEach(function(x){document.getElementById('tab-'+x).classList.add('hidden');document.getElementById('btn-'+x).classList.remove('active')});document.getElementById('tab-'+t).classList.remove('hidden');document.getElementById('btn-'+t).classList.add('active');if(t==='records')renderRecords();if(t==='reminders')renderReminders()}
-function saveProfile(){profile={name:document.getElementById('p-name').value,phone:document.getElementById('p-phone').value,age:document.getElementById('p-age').value,gender:document.getElementById('p-gender').value};save();document.getElementById('status').textContent='✅ সংরক্ষিত'}
-function addRecord(){var t=document.getElementById('r-type').value;var d=document.getElementById('r-date').value;var p=document.getElementById('r-place').value;var n=document.getElementById('r-note').value;if(!d){alert('তারিখ দিন');return}records.push({id:Date.now(),type:t,date:d,place:p,note:n});save();renderRecords();document.getElementById('r-date').value='';document.getElementById('r-place').value='';document.getElementById('r-note').value='';alert('✅ যোগ হয়েছে')}
-function renderRecords(){var list=document.getElementById('records-list');if(records.length===0){list.innerHTML='<p style="text-align:center;color:#a0aec0">কোনো রেকর্ড নেই</p>';return}var h='';records.slice().sort(function(a,b){return b.date.localeCompare(a.date)}).forEach(function(r){h+='<div class="rec"><b>'+r.type+'</b> — '+r.date;if(r.place)h+=' | 🏥 '+r.place;if(r.note)h+='<br>'+r.note;h+='<br><button style="background:#e53e3e;padding:4px;font-size:12px;width:auto;margin-top:6px" onclick="del('+r.id+')">🗑️ মুছুন</button></div>'});list.innerHTML=h}
-function del(id){if(!confirm('মুছবেন?'))return;records=records.filter(function(r){return r.id!==id});save();renderRecords()}
-function addReminder(){var t=document.getElementById('rem-title').value;var d=document.getElementById('rem-date').value;if(!t||!d){alert('সব দিন');return}reminders.push({id:Date.now(),title:t,date:d});save();renderReminders();document.getElementById('rem-title').value='';document.getElementById('rem-date').value=''}
-function renderReminders(){var list=document.getElementById('reminders-list');if(reminders.length===0){list.innerHTML='<p style="text-align:center;color:#a0aec0">কোনো অনুস্মারক নেই</p>';return}var h='';reminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){h+='<div class="rec"><b>'+r.title+'</b><br>🕒 '+new Date(r.date).toLocaleString('bn-BD')+'<br><button style="background:#e53e3e;padding:4px;font-size:12px;width:auto;margin-top:6px" onclick="delRem('+r.id+')">🗑️ মুছুন</button></div>'});list.innerHTML=h}
-function delRem(id){if(!confirm('মুছবেন?'))return;reminders=reminders.filter(function(r){return r.id!==id});save();renderReminders()}
-document.getElementById('p-name').value=profile.name||'';document.getElementById('p-phone').value=profile.phone||'';document.getElementById('p-age').value=profile.age||'';document.getElementById('p-gender').value=profile.gender||'';
+try{
+profile=JSON.parse(localStorage.getItem('profile')||'{}');
+records=JSON.parse(localStorage.getItem('records')||'[]');
+reminders=JSON.parse(localStorage.getItem('reminders')||'[]');
+}catch(e){}
+
+function save(){
+localStorage.setItem('profile',JSON.stringify(profile));
+localStorage.setItem('records',JSON.stringify(records));
+localStorage.setItem('reminders',JSON.stringify(reminders));
+}
+
+function tab(t){
+['profile','records','reminders','share'].forEach(function(x){
+document.getElementById('tab-'+x).classList.add('hidden');
+document.getElementById('btn-'+x).classList.remove('active');
+});
+document.getElementById('tab-'+t).classList.remove('hidden');
+document.getElementById('btn-'+t).classList.add('active');
+if(t==='records')renderRecords();
+if(t==='reminders')renderReminders();
+}
+
+function saveProfile(){
+profile={
+name:document.getElementById('p-name').value,
+phone:document.getElementById('p-phone').value,
+age:document.getElementById('p-age').value,
+gender:document.getElementById('p-gender').value
+};
+save();
+document.getElementById('status').textContent='✅ সংরক্ষিত';
+}
+
+function addRecord(){
+var t=document.getElementById('r-type').value;
+var d=document.getElementById('r-date').value;
+var p=document.getElementById('r-place').value;
+var n=document.getElementById('r-note').value;
+if(!d){alert('তারিখ দিন');return}
+records.push({id:Date.now(),type:t,date:d,place:p,note:n});
+save();renderRecords();
+document.getElementById('r-date').value='';
+document.getElementById('r-place').value='';
+document.getElementById('r-note').value='';
+alert('✅ যোগ হয়েছে');
+}
+
+function renderRecords(){
+var list=document.getElementById('records-list');
+if(records.length===0){
+list.innerHTML='<p style="text-align:center;color:#a0aec0">কোনো রেকর্ড নেই</p>';
+return;
+}
+var h='';
+records.slice().sort(function(a,b){return b.date.localeCompare(a.date)}).forEach(function(r){
+h+='<div class="rec"><b>'+r.type+'</b> — '+r.date;
+if(r.place)h+=' | 🏥 '+r.place;
+if(r.note)h+='<br>'+r.note;
+h+='<br><button style="background:#e53e3e;padding:4px;font-size:12px;width:auto;margin-top:6px" onclick="del('+r.id+')">🗑️ মুছুন</button></div>';
+});
+list.innerHTML=h;
+}
+
+function del(id){
+if(!confirm('মুছবেন?'))return;
+records=records.filter(function(r){return r.id!==id});
+save();renderRecords();
+}
+
+function addReminder(){
+var t=document.getElementById('rem-title').value;
+var d=document.getElementById('rem-date').value;
+if(!t||!d){alert('সব দিন');return}
+reminders.push({id:Date.now(),title:t,date:d,notified:false});
+save();renderReminders();
+document.getElementById('rem-title').value='';
+document.getElementById('rem-date').value='';
+alert('⏰ অনুস্মারক যোগ হয়েছে');
+}
+
+function renderReminders(){
+var list=document.getElementById('reminders-list');
+if(reminders.length===0){
+list.innerHTML='<p style="text-align:center;color:#a0aec0">কোনো অনুস্মারক নেই</p>';
+return;
+}
+var h='';
+reminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){
+h+='<div class="rec"><b>'+r.title+'</b><br>🕒 '+new Date(r.date).toLocaleString('bn-BD')+'<br><button style="background:#e53e3e;padding:4px;font-size:12px;width:auto;margin-top:6px" onclick="delRem('+r.id+')">🗑️ মুছুন</button></div>';
+});
+list.innerHTML=h;
+}
+
+function delRem(id){
+if(!confirm('মুছবেন?'))return;
+reminders=reminders.filter(function(r){return r.id!==id});
+save();renderReminders();
+}
+
+function checkReminders(){
+var now=new Date().getTime();
+reminders.forEach(function(r){
+var t=new Date(r.date).getTime();
+if(!r.notified && t<=now && t>now-60000){
+r.notified=true;
+save();
+var msg='⏰ অনুস্মারক: '+r.title;
+if('Notification' in window && Notification.permission==='granted'){
+new Notification('🩺 স্বাস্থ্য রিপোর্ট',{body:msg,icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>'});
+}
+alert(msg);
+}
+});
+}
+
+function askNotify(){
+if('Notification' in window && Notification.permission==='default'){
+Notification.requestPermission();
+}
+}
+askNotify();
+setInterval(checkReminders,30000);
+
+document.getElementById('p-name').value=profile.name||'';
+document.getElementById('p-phone').value=profile.phone||'';
+document.getElementById('p-age').value=profile.age||'';
+document.getElementById('p-gender').value=profile.gender||'';
 </script>
 </body>
 </html>
