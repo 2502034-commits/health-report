@@ -93,7 +93,12 @@ button{background:#2b6cb0;color:#fff;border:none;font-weight:bold}
 <button id="btn-share" onclick="tab('share')">শেয়ার</button>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
+var CLIENT_ID = '268762481393-237ff86b39t9t8496lakuc2vpstegk6s.apps.googleusercontent.com';
+var SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+var tokenClient = null;
+
 var profile={},records=[],reminders=[];
 try{
 profile=JSON.parse(localStorage.getItem('profile')||'{}');
@@ -169,7 +174,7 @@ function addReminder(){
 var t=document.getElementById('rem-title').value;
 var d=document.getElementById('rem-date').value;
 if(!t||!d){alert('সব দিন');return}
-reminders.push({id:Date.now(),title:t,date:d,notified:false});
+reminders.push({id:Date.now(),title:t,date:d});
 save();renderReminders();
 document.getElementById('rem-title').value='';
 document.getElementById('rem-date').value='';
@@ -184,7 +189,9 @@ return;
 }
 var h='';
 reminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){
-h+='<div class="rec"><b>'+r.title+'</b><br>🕒 '+new Date(r.date).toLocaleString('bn-BD')+'<br><button style="background:#e53e3e;padding:4px;font-size:12px;width:auto;margin-top:6px" onclick="delRem('+r.id+')">🗑️ মুছুন</button></div>';
+h+='<div class="rec"><b>'+r.title+'</b><br>🕒 '+new Date(r.date).toLocaleString('bn-BD');
+h+='<br><button style="background:#4285f4;padding:6px 10px;font-size:12px;width:auto;margin-top:6px;color:white" onclick="addToCalendar('+r.id+')">📅 Google Calendar-এ যোগ করুন</button>';
+h+=' <button style="background:#e53e3e;padding:6px 10px;font-size:12px;width:auto;margin-top:6px" onclick="delRem('+r.id+')">🗑️ মুছুন</button></div>';
 });
 list.innerHTML=h;
 }
@@ -195,34 +202,57 @@ reminders=reminders.filter(function(r){return r.id!==id});
 save();renderReminders();
 }
 
-function checkReminders(){
-var now=new Date().getTime();
-reminders.forEach(function(r){
-var t=new Date(r.date).getTime();
-if(!r.notified && t<=now && t>now-60000){
-r.notified=true;
-save();
-var msg='⏰ অনুস্মারক: '+r.title;
-if('Notification' in window && Notification.permission==='granted'){
-new Notification('🩺 স্বাস্থ্য রিপোর্ট',{body:msg,icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>'});
-}
-alert(msg);
+function initGoogle(){
+if(typeof google==='undefined'){setTimeout(initGoogle,500);return}
+tokenClient=google.accounts.oauth2.initTokenClient({
+client_id:CLIENT_ID,
+scope:SCOPES,
+callback:function(resp){
+if(resp.error){alert('অনুমতি পাওয়া যায়নি: '+resp.error);return}
+var pending=sessionStorage.getItem('pendingReminder');
+if(pending){sessionStorage.removeItem('pendingReminder');createEvent(JSON.parse(pending),resp.access_token)}
 }
 });
 }
 
-function askNotify(){
-if('Notification' in window && Notification.permission==='default'){
-Notification.requestPermission();
+function addToCalendar(id){
+var rem=reminders.find(function(r){return r.id===id});
+if(!rem)return;
+if(!tokenClient){alert('Google লোড হচ্ছে, একটু পরে আবার চেষ্টা করুন');return}
+sessionStorage.setItem('pendingReminder',JSON.stringify(rem));
+tokenClient.requestAccessToken({prompt:''});
 }
-}
-askNotify();
-setInterval(checkReminders,30000);
 
+function createEvent(rem,token){
+var start=new Date(rem.date);
+var end=new Date(start.getTime()+60*60*1000);
+function fmt(d){
+return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+'T'+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':00';
+}
+var event={
+summary:rem.title,
+description:'স্বাস্থ্য রিপোর্ট অ্যাপ থেকে তৈরি',
+start:{dateTime:fmt(start),timeZone:'Asia/Dhaka'},
+end:{dateTime:fmt(end),timeZone:'Asia/Dhaka'},
+reminders:{useDefault:true}
+};
+fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+method:'POST',
+headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+body:JSON.stringify(event)
+}).then(function(r){return r.json()}).then(function(data){
+if(data.error){alert('সমস্যা: '+data.error.message)}
+else{alert('✅ Google Calendar-এ যোগ হয়েছে!')}
+}).catch(function(){alert('নেটওয়ার্ক সমস্যা')});
+}
+
+window.addEventListener('load',function(){
+setTimeout(initGoogle,1000);
 document.getElementById('p-name').value=profile.name||'';
 document.getElementById('p-phone').value=profile.phone||'';
 document.getElementById('p-age').value=profile.age||'';
 document.getElementById('p-gender').value=profile.gender||'';
+});
 </script>
 </body>
 </html>
