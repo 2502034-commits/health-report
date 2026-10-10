@@ -5,37 +5,61 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>আমার স্বাস্থ্য রিপোর্ট</title>
 <style>
-body{font-family:sans-serif;background:#f0f4f8;margin:0;padding:0 0 80px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1a202c;padding-bottom:80px}
 header{background:#2b6cb0;color:#fff;padding:16px;text-align:center}
-header h1{margin:0;font-size:20px}
-header p{margin:4px 0 0;font-size:12px}
+header h1{font-size:20px}
+header p{font-size:12px;opacity:.9;margin-top:4px}
 .container{max-width:600px;margin:0 auto;padding:16px}
-.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
-h2{font-size:16px;color:#2b6cb0;margin:0 0 10px}
-input,select,textarea,button{width:100%;padding:10px;margin:6px 0;border:1px solid #cbd5e0;border-radius:8px;font-size:15px}
-button{background:#2b6cb0;color:#fff;border:none;font-weight:bold}
-.tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #e2e8f0}
-.tabbar button{flex:1;background:#fff;color:#4a5568;border-radius:0;margin:0;padding:14px 4px;font-size:12px}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+h2{font-size:16px;color:#2b6cb0;margin-bottom:10px}
+h3{font-size:14px;color:#2b6cb0;margin:8px 0}
+input,select,textarea,button{width:100%;padding:10px;margin:6px 0;border:1px solid #cbd5e0;border-radius:8px;font-size:15px;font-family:inherit}
+button{background:#2b6cb0;color:#fff;border:none;cursor:pointer;font-weight:bold}
+button:hover{background:#2c5282}
+button.danger{background:#e53e3e}
+button.green{background:#38a169}
+button.blue{background:#4285f4}
+.tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #e2e8f0;max-width:600px;margin:0 auto;z-index:100}
+.tabbar button{flex:1;background:#fff;color:#4a5568;border-radius:0;padding:12px 2px;font-size:11px;margin:0}
 .tabbar button.active{color:#2b6cb0;border-top:3px solid #2b6cb0}
-.rec{background:#f7fafc;border-left:4px solid #2b6cb0;padding:10px;border-radius:6px;margin-bottom:8px}
+.rec{background:#f7fafc;border-left:4px solid #2b6cb0;padding:10px 12px;border-radius:6px;margin-bottom:8px}
 .rec b{color:#2b6cb0}
+.rec img{max-width:100%;margin-top:8px;border-radius:6px;cursor:pointer}
+.rec .date{font-size:12px;color:#718096;margin-top:2px}
+.rec .note{font-size:14px;margin-top:6px}
 .hidden{display:none}
-.notice{background:#fefcbf;padding:10px;border-radius:6px;font-size:13px;margin-bottom:12px}
+.notice{background:#fefcbf;border-left:4px solid #d69e2e;padding:10px;font-size:13px;border-radius:6px;margin-bottom:12px}
+.row{display:flex;gap:8px;margin-top:8px}
+.row button{flex:1;padding:8px;font-size:13px;margin:0}
+.empty{text-align:center;color:#a0aec0;padding:20px;font-size:14px}
+.file-preview{margin-top:8px}
+.file-preview img{max-width:100%;border-radius:6px}
+.check-row{display:flex;align-items:center;background:#f7fafc;padding:8px;border-radius:6px;margin-bottom:6px}
+.check-row input{width:auto;margin:0 8px 0 0}
+.pill{display:inline-block;background:#bee3f8;color:#2a4365;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:4px}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal.show{display:flex}
+.modal img{max-width:100%;max-height:90vh;border-radius:8px}
+.med-dose{background:#e6fffa;border-left-color:#38b2ac}
 </style>
 </head>
 <body>
+
 <header>
 <h1>🩺 আমার স্বাস্থ্য রিপোর্ট</h1>
-<p>প্রথম সংস্করণ</p>
+<p>সংস্করণ ২ — ছবি, ওষুধ ও PDF</p>
 </header>
+
 <div class="container">
 <div class="notice">⚠️ এই অ্যাপ রোগনির্ণয়ের বিকল্প নয়।</div>
 
+<!-- প্রোফাইল ট্যাব -->
 <div id="tab-profile">
 <div class="card">
-<h2>👤 প্রোফাইল</h2>
+<h2>👤 আমার প্রোফাইল</h2>
 <input id="p-name" placeholder="আপনার নাম">
-<input id="p-phone" placeholder="ফোন নম্বর">
+<input id="p-phone" placeholder="ফোন নম্বর" type="tel">
 <input id="p-age" placeholder="বয়স">
 <select id="p-gender">
 <option value="">লিঙ্গ</option>
@@ -43,11 +67,12 @@ button{background:#2b6cb0;color:#fff;border:none;font-weight:bold}
 <option>মহিলা</option>
 <option>অন্যান্য</option>
 </select>
-<button onclick="saveProfile()">সংরক্ষণ</button>
-<p id="status"></p>
+<button onclick="saveProfile()">সংরক্ষণ করুন</button>
+<p id="profile-status" style="color:#38a169;font-size:13px;margin-top:6px"></p>
 </div>
 </div>
 
+<!-- রেকর্ড ট্যাব -->
 <div id="tab-records" class="hidden">
 <div class="card">
 <h2>➕ নতুন রেকর্ড</h2>
@@ -60,27 +85,65 @@ button{background:#2b6cb0;color:#fff;border:none;font-weight:bold}
 </select>
 <input id="r-date" type="date">
 <input id="r-place" placeholder="হাসপাতাল / ক্লিনিক">
-<textarea id="r-note" placeholder="নোট"></textarea>
+<textarea id="r-note" rows="2" placeholder="নোট"></textarea>
+<label style="font-size:13px;color:#4a5568;display:block;margin-top:6px">📎 ছবি বা PDF আপলোড (সর্বোচ্চ ২ MB)</label>
+<input id="r-file" type="file" accept="image/*,application/pdf">
+<div id="file-preview" class="file-preview"></div>
 <button onclick="addRecord()">যোগ করুন</button>
 </div>
+
+<div class="card">
+<h2>🔍 খুঁজুন</h2>
+<input id="search-box" placeholder="ধরন বা নোট লিখুন" oninput="renderRecords()">
+<select id="filter-type" onchange="renderRecords()">
+<option value="">সব ধরন</option>
+<option>প্রেসক্রিপশন</option>
+<option>পরীক্ষার রিপোর্ট</option>
+<option>ছাড়পত্র</option>
+<option>টিকা</option>
+<option>অন্যান্য</option>
+</select>
+</div>
+
 <h2 style="margin:12px 4px">📁 আমার রেকর্ড</h2>
 <div id="records-list"></div>
 </div>
 
+<!-- অনুস্মারক ট্যাব -->
 <div id="tab-reminders" class="hidden">
 <div class="card">
-<h2>⏰ অনুস্মারক</h2>
+<h2>⏰ পরবর্তী ভিজিট</h2>
 <input id="rem-title" placeholder="শিরোনাম">
 <input id="rem-date" type="datetime-local">
 <button onclick="addReminder()">যোগ করুন</button>
 </div>
+<h2 style="margin:12px 4px">আসন্ন অনুস্মারক</h2>
 <div id="reminders-list"></div>
 </div>
 
+<!-- ওষুধ ট্যাব -->
+<div id="tab-meds" class="hidden">
+<div class="card">
+<h2>💊 নতুন ওষুধ</h2>
+<input id="med-name" placeholder="ওষুধের নাম">
+<input id="med-dose" placeholder="ডোজ (যেমন: ১ টা)">
+<input id="med-time" type="time">
+<input id="med-days" type="number" placeholder="কত দিন খেতে হবে" value="7">
+<button onclick="addMed()">যোগ করুন</button>
+</div>
+<h2 style="margin:12px 4px">💊 আমার ওষুধ</h2>
+<div id="meds-list"></div>
+</div>
+
+<!-- শেয়ার ট্যাব -->
 <div id="tab-share" class="hidden">
 <div class="card">
-<h2>🤝 শেয়ার</h2>
-<p style="font-size:13px">শীঘ্রই আসছে।</p>
+<h2>📄 PDF শেয়ার</h2>
+<p style="font-size:13px;color:#718096;margin-bottom:8px">
+যেসব রেকর্ড দেখাতে চান সেগুলো টিক দিন। সব একসাথে একটা PDF হবে।
+</p>
+<div id="share-list"></div>
+<button onclick="exportPDF()" class="blue" style="margin-top:10px">📄 PDF ডাউনলোড</button>
 </div>
 </div>
 
@@ -90,7 +153,12 @@ button{background:#2b6cb0;color:#fff;border:none;font-weight:bold}
 <button id="btn-profile" onclick="tab('profile')" class="active">প্রোফাইল</button>
 <button id="btn-records" onclick="tab('records')">রেকর্ড</button>
 <button id="btn-reminders" onclick="tab('reminders')">অনুস্মারক</button>
+<button id="btn-meds" onclick="tab('meds')">ওষুধ</button>
 <button id="btn-share" onclick="tab('share')">শেয়ার</button>
+</div>
+
+<div id="imageModal" class="modal" onclick="this.classList.remove('show')">
+<img id="modalImg" src="">
 </div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -99,28 +167,33 @@ var CLIENT_ID = '826858578843-2a839kseq0qhelm13l5j0ji567mvkr46.apps.googleuserco
 var SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 var tokenClient = null;
 
-var profile={},records=[],reminders=[];
+var profile={},records=[],reminders=[],meds=[];
 try{
 profile=JSON.parse(localStorage.getItem('profile')||'{}');
 records=JSON.parse(localStorage.getItem('records')||'[]');
 reminders=JSON.parse(localStorage.getItem('reminders')||'[]');
+meds=JSON.parse(localStorage.getItem('meds')||'[]');
 }catch(e){}
 
 function save(){
 localStorage.setItem('profile',JSON.stringify(profile));
 localStorage.setItem('records',JSON.stringify(records));
 localStorage.setItem('reminders',JSON.stringify(reminders));
+localStorage.setItem('meds',JSON.stringify(meds));
 }
 
 function tab(t){
-['profile','records','reminders','share'].forEach(function(x){
+['profile','records','reminders','meds','share'].forEach(function(x){
 document.getElementById('tab-'+x).classList.add('hidden');
-document.getElementById('btn-'+x).classList.remove('active');
+var btn=document.getElementById('btn-'+x);
+if(btn)btn.classList.remove('active');
 });
 document.getElementById('tab-'+t).classList.remove('hidden');
 document.getElementById('btn-'+t).classList.add('active');
 if(t==='records')renderRecords();
 if(t==='reminders')renderReminders();
+if(t==='meds')renderMeds();
+if(t==='share')renderShareList();
 }
 
 function saveProfile(){
@@ -131,45 +204,109 @@ age:document.getElementById('p-age').value,
 gender:document.getElementById('p-gender').value
 };
 save();
-document.getElementById('status').textContent='✅ সংরক্ষিত';
+document.getElementById('profile-status').textContent='✅ সংরক্ষিত';
+setTimeout(function(){document.getElementById('profile-status').textContent=''},2000);
 }
 
+// ছবি প্রিভিউ
+document.getElementById('r-file').addEventListener('change',function(e){
+var f=e.target.files[0];
+var prev=document.getElementById('file-preview');
+prev.innerHTML='';
+if(!f)return;
+if(f.type.indexOf('image')===0){
+var reader=new FileReader();
+reader.onload=function(ev){
+prev.innerHTML='<img src="'+ev.target.result+'">';
+};
+reader.readAsDataURL(f);
+}else{
+prev.innerHTML='<p style="font-size:13px;color:#38a169">📄 '+f.name+' নির্বাচিত</p>';
+}
+});
+
 function addRecord(){
-var t=document.getElementById('r-type').value;
-var d=document.getElementById('r-date').value;
-var p=document.getElementById('r-place').value;
-var n=document.getElementById('r-note').value;
-if(!d){alert('তারিখ দিন');return}
-records.push({id:Date.now(),type:t,date:d,place:p,note:n});
+var type=document.getElementById('r-type').value;
+var date=document.getElementById('r-date').value;
+var place=document.getElementById('r-place').value;
+var note=document.getElementById('r-note').value;
+var fileInput=document.getElementById('r-file');
+if(!date){alert('তারিখ দিন');return}
+
+function finish(fileData,fileType,fileName){
+records.push({
+id:Date.now(),type:type,date:date,place:place,note:note,
+fileData:fileData||null,fileType:fileType||null,fileName:fileName||null
+});
 save();renderRecords();
 document.getElementById('r-date').value='';
 document.getElementById('r-place').value='';
 document.getElementById('r-note').value='';
+fileInput.value='';
+document.getElementById('file-preview').innerHTML='';
 alert('✅ যোগ হয়েছে');
+}
+
+if(fileInput.files.length>0){
+var file=fileInput.files[0];
+if(file.size>2*1024*1024){alert('ফাইল ২ MB এর কম হতে হবে');return}
+var reader=new FileReader();
+reader.onload=function(e){finish(e.target.result,file.type,file.name)};
+reader.readAsDataURL(file);
+}else{
+finish(null,null,null);
+}
 }
 
 function renderRecords(){
 var list=document.getElementById('records-list');
-if(records.length===0){
-list.innerHTML='<p style="text-align:center;color:#a0aec0">কোনো রেকর্ড নেই</p>';
+var q=(document.getElementById('search-box').value||'').toLowerCase();
+var ft=document.getElementById('filter-type').value;
+var filtered=records.filter(function(r){
+if(ft&&r.type!==ft)return false;
+if(q){
+var m=r.type.toLowerCase().indexOf(q)!==-1||
+(r.note||'').toLowerCase().indexOf(q)!==-1||
+(r.place||'').toLowerCase().indexOf(q)!==-1;
+if(!m)return false;
+}
+return true;
+}).sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
+
+if(filtered.length===0){
+list.innerHTML='<div class="empty">কোনো রেকর্ড নেই</div>';
 return;
 }
 var h='';
-records.slice().sort(function(a,b){return b.date.localeCompare(a.date)}).forEach(function(r){
-h+='<div class="rec"><b>'+r.type+'</b> — '+r.date;
-if(r.place)h+=' | 🏥 '+r.place;
-if(r.note)h+='<br>'+r.note;
-h+='<br><button style="background:#e53e3e;padding:4px;font-size:12px;width:auto;margin-top:6px" onclick="del('+r.id+')">🗑️ মুছুন</button></div>';
+filtered.forEach(function(r){
+h+='<div class="rec">';
+h+='<b>'+r.type+'</b> <span class="pill">'+r.date+'</span>';
+if(r.place)h+='<div class="date">🏥 '+r.place+'</div>';
+if(r.note)h+='<div class="note">'+r.note+'</div>';
+if(r.fileData&&r.fileType&&r.fileType.indexOf('image')===0){
+h+='<img src="'+r.fileData+'" onclick="showImg(this.src)">';
+}else if(r.fileData){
+h+='<div style="margin-top:6px"><a href="'+r.fileData+'" download="'+(r.fileName||'report.pdf')+'" style="color:#2b6cb0">📄 '+(r.fileName||'PDF ডাউনলোড')+'</a></div>';
+}
+h+='<div class="row">';
+h+='<button class="danger" onclick="delRecord('+r.id+')">🗑️ মুছুন</button>';
+h+='</div></div>';
 });
 list.innerHTML=h;
 }
 
-function del(id){
+function showImg(src){
+document.getElementById('modalImg').src=src;
+document.getElementById('imageModal').classList.add('show');
+}
+
+function delRecord(id){
 if(!confirm('মুছবেন?'))return;
 records=records.filter(function(r){return r.id!==id});
 save();renderRecords();
 }
 
+// ===== অনুস্মারক =====
 function addReminder(){
 var t=document.getElementById('rem-title').value;
 var d=document.getElementById('rem-date').value;
@@ -178,20 +315,24 @@ reminders.push({id:Date.now(),title:t,date:d});
 save();renderReminders();
 document.getElementById('rem-title').value='';
 document.getElementById('rem-date').value='';
-alert('⏰ অনুস্মারক যোগ হয়েছে');
+alert('⏰ যোগ হয়েছে');
 }
 
 function renderReminders(){
 var list=document.getElementById('reminders-list');
 if(reminders.length===0){
-list.innerHTML='<p style="text-align:center;color:#a0aec0">কোনো অনুস্মারক নেই</p>';
+list.innerHTML='<div class="empty">কোনো অনুস্মারক নেই</div>';
 return;
 }
 var h='';
 reminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){
-h+='<div class="rec"><b>'+r.title+'</b><br>🕒 '+new Date(r.date).toLocaleString('bn-BD');
-h+='<br><button style="background:#4285f4;padding:6px 10px;font-size:12px;width:auto;margin-top:6px;color:white" onclick="addToCalendar('+r.id+')">📅 Google Calendar-এ যোগ করুন</button>';
-h+=' <button style="background:#e53e3e;padding:6px 10px;font-size:12px;width:auto;margin-top:6px" onclick="delRem('+r.id+')">🗑️ মুছুন</button></div>';
+h+='<div class="rec">';
+h+='<b>'+r.title+'</b>';
+h+='<div class="date">🕒 '+new Date(r.date).toLocaleString('bn-BD')+'</div>';
+h+='<div class="row">';
+h+='<button class="blue" onclick="addToCalendar('+r.id+')">📅 Calendar</button>';
+h+='<button class="danger" onclick="delRem('+r.id+')">🗑️</button>';
+h+='</div></div>';
 });
 list.innerHTML=h;
 }
@@ -202,6 +343,47 @@ reminders=reminders.filter(function(r){return r.id!==id});
 save();renderReminders();
 }
 
+// ===== ওষুধ =====
+function addMed(){
+var name=document.getElementById('med-name').value;
+var dose=document.getElementById('med-dose').value;
+var time=document.getElementById('med-time').value;
+var days=document.getElementById('med-days').value;
+if(!name||!time){alert('নাম ও সময় দিন');return}
+meds.push({id:Date.now(),name:name,dose:dose,time:time,days:days||7});
+save();renderMeds();
+document.getElementById('med-name').value='';
+document.getElementById('med-dose').value='';
+document.getElementById('med-time').value='';
+alert('💊 যোগ হয়েছে');
+}
+
+function renderMeds(){
+var list=document.getElementById('meds-list');
+if(meds.length===0){
+list.innerHTML='<div class="empty">কোনো ওষুধ নেই</div>';
+return;
+}
+var h='';
+meds.forEach(function(m){
+h+='<div class="rec med-dose">';
+h+='<b>💊 '+m.name+'</b>';
+h+='<div class="date">ডোজ: '+(m.dose||'-')+' | সময়: '+m.time+' | '+(m.days||7)+' দিন</div>';
+h+='<div class="row">';
+h+='<button class="blue" onclick="addMedToCal('+m.id+')">📅 Calendar</button>';
+h+='<button class="danger" onclick="delMed('+m.id+')">🗑️</button>';
+h+='</div></div>';
+});
+list.innerHTML=h;
+}
+
+function delMed(id){
+if(!confirm('মুছবেন?'))return;
+meds=meds.filter(function(m){return m.id!==id});
+save();renderMeds();
+}
+
+// ===== Google Calendar =====
 function initGoogle(){
 if(typeof google==='undefined'){setTimeout(initGoogle,500);return}
 tokenClient=google.accounts.oauth2.initTokenClient({
@@ -209,8 +391,8 @@ client_id:CLIENT_ID,
 scope:SCOPES,
 callback:function(resp){
 if(resp.error){alert('অনুমতি পাওয়া যায়নি: '+resp.error);return}
-var pending=sessionStorage.getItem('pendingReminder');
-if(pending){sessionStorage.removeItem('pendingReminder');createEvent(JSON.parse(pending),resp.access_token)}
+var pending=sessionStorage.getItem('pendingEvent');
+if(pending){sessionStorage.removeItem('pendingEvent');createEvent(JSON.parse(pending),resp.access_token)}
 }
 });
 }
@@ -218,20 +400,43 @@ if(pending){sessionStorage.removeItem('pendingReminder');createEvent(JSON.parse(
 function addToCalendar(id){
 var rem=reminders.find(function(r){return r.id===id});
 if(!rem)return;
-if(!tokenClient){alert('Google লোড হচ্ছে, একটু পরে আবার চেষ্টা করুন');return}
-sessionStorage.setItem('pendingReminder',JSON.stringify(rem));
+if(!tokenClient){alert('Google লোড হচ্ছে');return}
+sessionStorage.setItem('pendingEvent',JSON.stringify({
+title:rem.title,date:rem.date,desc:'স্বাস্থ্য রিপোর্ট অ্যাপ থেকে'
+}));
 tokenClient.requestAccessToken({prompt:''});
 }
 
-function createEvent(rem,token){
-var start=new Date(rem.date);
-var end=new Date(start.getTime()+60*60*1000);
+function addMedToCal(id){
+var m=meds.find(function(x){return x.id===id});
+if(!m)return;
+if(!tokenClient){alert('Google লোড হচ্ছে');return}
+var today=new Date();
+var parts=m.time.split(':');
+today.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
+var startISO=today.toISOString();
+sessionStorage.setItem('pendingEvent',JSON.stringify({
+title:'💊 '+m.name+' ('+(m.dose||'')+')',
+date:startISO,
+desc:'ওষুধ খাওয়ার সময়'
+}));
+tokenClient.requestAccessToken({prompt:''});
+}
+
+function createEvent(ev,token){
+var start=new Date(ev.date);
+var end=new Date(start.getTime()+30*60*1000);
 function fmt(d){
-return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+'T'+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':00';
+var y=d.getFullYear();
+var mo=('0'+(d.getMonth()+1)).slice(-2);
+var da=('0'+d.getDate()).slice(-2);
+var h=('0'+d.getHours()).slice(-2);
+var mi=('0'+d.getMinutes()).slice(-2);
+return y+'-'+mo+'-'+da+'T'+h+':'+mi+':00';
 }
 var event={
-summary:rem.title,
-description:'স্বাস্থ্য রিপোর্ট অ্যাপ থেকে তৈরি',
+summary:ev.title,
+description:ev.desc||'',
 start:{dateTime:fmt(start),timeZone:'Asia/Dhaka'},
 end:{dateTime:fmt(end),timeZone:'Asia/Dhaka'},
 reminders:{useDefault:true}
@@ -246,13 +451,85 @@ else{alert('✅ Google Calendar-এ যোগ হয়েছে!')}
 }).catch(function(){alert('নেটওয়ার্ক সমস্যা')});
 }
 
+// ===== PDF শেয়ার =====
+function renderShareList(){
+var list=document.getElementById('share-list');
+if(records.length===0){
+list.innerHTML='<div class="empty">আগে রেকর্ড যোগ করুন</div>';
+return;
+}
+var h='';
+records.forEach(function(r){
+var label=r.type+' — '+r.date+(r.place?' ('+r.place+')':'');
+h+='<label class="check-row">';
+h+='<input type="checkbox" value="'+r.id+'" class="share-check">';
+h+='<span>'+label+'</span>';
+h+='</label>';
+});
+list.innerHTML=h;
+}
+
+function exportPDF(){
+var checks=document.querySelectorAll('.share-check:checked');
+var ids=[];
+for(var i=0;i<checks.length;i++)ids.push(Number(checks[i].value));
+if(ids.length===0){alert('অন্তত একটি রেকর্ড টিক দিন');return}
+var selected=records.filter(function(r){return ids.indexOf(r.id)!==-1});
+
+var win=window.open('','_blank');
+var html='<html><head><meta charset="utf-8"><title>স্বাস্থ্য রিপোর্ট</title>';
+html+='<style>';
+html+='body{font-family:sans-serif;padding:24px;max-width:750px;margin:auto;color:#1a202c}';
+html+='h1{color:#2b6cb0;border-bottom:2px solid #2b6cb0;padding-bottom:8px}';
+html+='.item{border:1px solid #cbd5e0;border-radius:8px;padding:14px;margin:14px 0;page-break-inside:avoid}';
+html+='.t{font-weight:bold;color:#2b6cb0;font-size:17px;margin-bottom:4px}';
+html+='.d{color:#718096;font-size:13px;margin:4px 0}';
+html+='img{max-width:100%;margin-top:10px;border-radius:6px}';
+html+='.notice{background:#fefcbf;padding:12px;border-left:4px solid #d69e2e;font-size:13px;border-radius:6px;margin-bottom:16px}';
+html+='.header-info{background:#ebf8ff;padding:12px;border-radius:8px;margin-bottom:16px}';
+html+='@media print{.noprint{display:none}}';
+html+='</style></head><body>';
+
+html+='<h1>🩺 স্বাস্থ্য রিপোর্ট</h1>';
+html+='<div class="header-info">';
+html+='<p><b>রোগীর নাম:</b> '+(profile.name||'—')+'</p>';
+html+='<p><b>বয়স:</b> '+(profile.age||'—')+' | <b>লিঙ্গ:</b> '+(profile.gender||'—')+'</p>';
+html+='<p><b>ফোন:</b> '+(profile.phone||'—')+'</p>';
+html+='<p><b>তৈরির তারিখ:</b> '+new Date().toLocaleString('bn-BD')+'</p>';
+html+='</div>';
+html+='<div class="notice">⚠️ এই ডকুমেন্ট রোগীর সম্মতিতে শেয়ার করা হয়েছে। এটি রোগনির্ণয় বা চিকিৎসকের বিকল্প নয়।</div>';
+
+selected.forEach(function(r){
+html+='<div class="item">';
+html+='<div class="t">'+r.type+'</div>';
+html+='<div class="d">📅 '+r.date+(r.place?' | 🏥 '+r.place:'')+'</div>';
+if(r.note)html+='<p style="margin:8px 0">'+r.note+'</p>';
+if(r.fileData&&r.fileType&&r.fileType.indexOf('image')===0){
+html+='<img src="'+r.fileData+'">';
+}
+html+='</div>';
+});
+
+html+='<button class="noprint" onclick="window.print()" style="padding:12px 24px;background:#2b6cb0;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;margin-top:16px">🖨️ PDF সেভ / প্রিন্ট করুন</button>';
+html+='<p class="noprint" style="margin-top:10px;font-size:12px;color:#718096">প্রিন্ট ডায়ালগে Destination = "Save as PDF" নির্বাচন করুন।</p>';
+html+='</body></html>';
+
+win.document.write(html);
+win.document.close();
+}
+
+// ===== শুরু =====
 window.addEventListener('load',function(){
 setTimeout(initGoogle,1000);
 document.getElementById('p-name').value=profile.name||'';
 document.getElementById('p-phone').value=profile.phone||'';
 document.getElementById('p-age').value=profile.age||'';
 document.getElementById('p-gender').value=profile.gender||'';
+renderRecords();
+renderReminders();
+renderMeds();
 });
 </script>
+
 </body>
-</html>
+  </html>
