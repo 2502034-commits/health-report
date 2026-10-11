@@ -354,27 +354,34 @@ function delRem(id){if(!confirm('মুছবেন?'))return;reminders=reminder
 // ===== ওষুধের নতুন ফাংশন =====
 function addTimeInput(){
 var container=document.getElementById('time-inputs');
-var count=container.children.length+1;
 var div=document.createElement('div');
 div.className='time-chip';
 div.innerHTML='<input type="time" value="12:00" style="width:auto;margin:0;padding:4px;font-size:13px"><button type="button" onclick="this.parentElement.remove()" style="background:#e53e3e;color:#fff;border-radius:50%;width:20px;height:20px;padding:0;font-size:12px">×</button>';
 container.appendChild(div);
-}
+  }
 
 function addMed(){
-var name=document.getElementById('med-name').value;
-var dose=document.getElementById('med-dose').value;
+var name=document.getElementById('med-name').value.trim();
+var dose=document.getElementById('med-dose').value.trim();
 var days=parseInt(document.getElementById('med-days').value)||7;
-var timeInputs=document.querySelectorAll('#time-inputs input[type="time"], .time-chip input[type="time"]');var times=[];
-timeInputs.forEach(function(inp){if(inp.value)times.push(inp.value)});
-if(!name||times.length===0){alert('নাম ও সময় দিন');return}
+
+// সময়গুলো সংগ্রহ করুন
+var times=[];
+var container=document.getElementById('time-inputs');
+var allInputs=container.querySelectorAll('input[type="time"]');
+for(var i=0;i<allInputs.length;i++){
+if(allInputs[i].value)times.push(allInputs[i].value);
+}
+
+if(!name){alert('ওষুধের নাম দিন');return}
+if(times.length===0){alert('অন্তত একটি সময় দিন');return}
 
 var startDate=new Date().toISOString().split('T')[0];
 var takenDays={};
 var missedDays={};
-for(var i=0;i<days;i++){
+for(var j=0;j<days;j++){
 var d=new Date();
-d.setDate(d.getDate()+i);
+d.setDate(d.getDate()+j);
 var key=d.toISOString().split('T')[0];
 takenDays[key]={};
 missedDays[key]={};
@@ -383,19 +390,24 @@ missedDays[key]={};
 meds.push({
 id:Date.now(),
 name:name,
-dose:dose,
+dose:dose||'',
 times:times,
 days:days,
 startDate:startDate,
 takenDays:takenDays,
 missedDays:missedDays
 });
-save();renderMeds();
+
+save();
+renderMeds();
+
 document.getElementById('med-name').value='';
 document.getElementById('med-dose').value='';
-document.getElementById('time-inputs').innerHTML='<div class="time-chip"><input type="time" id="med-time-1" value="08:00" style="width:auto;margin:0;padding:4px;font-size:13px"></div>';
+document.getElementById('med-days').value='7';
+container.innerHTML='<div class="time-chip"><input type="time" value="08:00" style="width:auto;margin:0;padding:4px;font-size:13px"></div>';
+
 alert('💊 ওষুধ যোগ হয়েছে');
-}
+  }
 
 function renderMeds(){
 var list=document.getElementById('meds-list');
