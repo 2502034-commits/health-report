@@ -20,6 +20,7 @@ button:hover{background:#2c5282}
 button.danger{background:#e53e3e}
 button.green{background:#38a169}
 button.blue{background:#4285f4}
+button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 .tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #e2e8f0;max-width:600px;margin:0 auto;z-index:100}
 .tabbar button{flex:1;background:#fff;color:#4a5568;border-radius:0;padding:12px 2px;font-size:11px;margin:0}
 .tabbar button.active{color:#2b6cb0;border-top:3px solid #2b6cb0}
@@ -41,20 +42,42 @@ button.blue{background:#4285f4}
 .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
 .modal.show{display:flex}
 .modal img{max-width:100%;max-height:90vh;border-radius:8px}
-.med-dose{background:#e6fffa;border-left-color:#38b2ac}
+
+/* ===== ওষুধের নতুন স্টাইল ===== */
+.med-card{background:#fff;border-left:4px solid #38b2ac;border-radius:8px;padding:12px;margin-bottom:10px}
+.med-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.med-name{font-weight:bold;color:#2b6cb0;font-size:15px}
+.med-dose-text{font-size:12px;color:#718096;margin-top:2px}
+.time-list{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.time-chip{background:#e6fffa;border:1px solid #38b2ac;color:#234e52;padding:6px 10px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}
+.time-chip.taken{background:#c6f6d5;border-color:#38a169;color:#22543d}
+.time-chip button{width:auto;padding:2px 6px;margin:0;background:transparent;color:inherit;font-size:11px}
+.progress{background:#e2e8f0;border-radius:10px;height:22px;overflow:hidden;margin:8px 0}
+.progress-bar{background:linear-gradient(90deg,#38a169,#48bb78);height:100%;transition:width .3s;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold}
+.med-info{font-size:12px;color:#4a5568;margin:4px 0}
+.med-info b{color:#2b6cb0}
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:10px 0}
+.day-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;background:#edf2f7;color:#718096;cursor:pointer}
+.day-cell.taken{background:#38a169;color:#fff}
+.day-cell.today{border:2px solid #2b6cb0}
+.day-cell.future{opacity:.4}
+.med-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.med-actions button{flex:1;padding:8px;font-size:12px;margin:0;min-width:70px}
+.stat-box{display:flex;gap:8px;margin:8px 0}
+.stat-item{flex:1;background:#ebf8ff;padding:8px;border-radius:8px;text-align:center}
+.stat-item .num{font-size:18px;font-weight:bold;color:#2b6cb0}
+.stat-item .label{font-size:11px;color:#718096}
 </style>
 </head>
 <body>
 
 <header>
 <h1>🩺 আমার স্বাস্থ্য রিপোর্ট</h1>
-<p>সংস্করণ ২ — ছবি, ওষুধ ও PDF</p>
+<p>সংস্করণ ৩ — সম্পূর্ণ ওষুধ ট্র্যাকার</p>
 </header>
 
 <div class="container">
-<div class="notice">⚠️ এই অ্যাপ রোগনির্ণয়ের বিকল্প নয়।</div>
-
-<!-- প্রোফাইল ট্যাব -->
+<div class="notice">⚠️ এই অ্যাপ রোগনির্ণয়ের বিকল্প নয়।</div><!-- প্রোফাইল ট্যাব -->
 <div id="tab-profile">
 <div class="card">
 <h2>👤 আমার প্রোফাইল</h2>
@@ -124,13 +147,38 @@ button.blue{background:#4285f4}
 <!-- ওষুধ ট্যাব -->
 <div id="tab-meds" class="hidden">
 <div class="card">
-<h2>💊 নতুন ওষুধ</h2>
-<input id="med-name" placeholder="ওষুধের নাম">
+<h2>💊 নতুন ওষুধ যোগ করুন</h2>
+<input id="med-name" placeholder="ওষুধের নাম (যেমন: প্যারাসিটামল)">
 <input id="med-dose" placeholder="ডোজ (যেমন: ১ টা)">
-<input id="med-time" type="time">
-<input id="med-days" type="number" placeholder="কত দিন খেতে হবে" value="7">
-<button onclick="addMed()">যোগ করুন</button>
+<label style="font-size:13px;color:#4a5568;margin-top:6px;display:block">⏰ কতবার খেতে হবে?</label>
+<div class="time-list" id="time-inputs">
+<div class="time-chip">
+<input type="time" id="med-time-1" value="08:00" style="width:auto;margin:0;padding:4px;font-size:13px">
 </div>
+</div>
+<button class="small blue" onclick="addTimeInput()" type="button">+ আরও সময় যোগ করুন</button>
+<input id="med-days" type="number" placeholder="কত দিন খেতে হবে" value="7" min="1">
+<button onclick="addMed()">💊 ওষুধ যোগ করুন</button>
+</div>
+
+<div class="card">
+<h2>📊 সামগ্রিক হিসাব</h2>
+<div class="stat-box">
+<div class="stat-item">
+<div class="num" id="stat-total">0</div>
+<div class="label">মোট ওষুধ</div>
+</div>
+<div class="stat-item">
+<div class="num" id="stat-active">0</div>
+<div class="label">চলমান</div>
+</div>
+<div class="stat-item">
+<div class="num" id="stat-done">0</div>
+<div class="label">সম্পন্ন</div>
+</div>
+</div>
+</div>
+
 <h2 style="margin:12px 4px">💊 আমার ওষুধ</h2>
 <div id="meds-list"></div>
 </div>
@@ -139,9 +187,7 @@ button.blue{background:#4285f4}
 <div id="tab-share" class="hidden">
 <div class="card">
 <h2>📄 PDF শেয়ার</h2>
-<p style="font-size:13px;color:#718096;margin-bottom:8px">
-যেসব রেকর্ড দেখাতে চান সেগুলো টিক দিন। সব একসাথে একটা PDF হবে।
-</p>
+<p style="font-size:13px;color:#718096;margin-bottom:8px">যেসব রেকর্ড দেখাতে চান সেগুলো টিক দিন।</p>
 <div id="share-list"></div>
 <button onclick="exportPDF()" class="blue" style="margin-top:10px">📄 PDF ডাউনলোড</button>
 </div>
@@ -159,9 +205,7 @@ button.blue{background:#4285f4}
 
 <div id="imageModal" class="modal" onclick="this.classList.remove('show')">
 <img id="modalImg" src="">
-</div>
-
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+</div><script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 var CLIENT_ID = '826858578843-2a839kseq0qhelm13l5j0ji567mvkr46.apps.googleusercontent.com';
 var SCOPES = 'https://www.googleapis.com/auth/calendar.events';
@@ -185,8 +229,8 @@ localStorage.setItem('meds',JSON.stringify(meds));
 function tab(t){
 ['profile','records','reminders','meds','share'].forEach(function(x){
 document.getElementById('tab-'+x).classList.add('hidden');
-var btn=document.getElementById('btn-'+x);
-if(btn)btn.classList.remove('active');
+var b=document.getElementById('btn-'+x);
+if(b)b.classList.remove('active');
 });
 document.getElementById('tab-'+t).classList.remove('hidden');
 document.getElementById('btn-'+t).classList.add('active');
@@ -208,18 +252,15 @@ document.getElementById('profile-status').textContent='✅ সংরক্ষি
 setTimeout(function(){document.getElementById('profile-status').textContent=''},2000);
 }
 
-// ছবি প্রিভিউ
 document.getElementById('r-file').addEventListener('change',function(e){
 var f=e.target.files[0];
 var prev=document.getElementById('file-preview');
 prev.innerHTML='';
 if(!f)return;
 if(f.type.indexOf('image')===0){
-var reader=new FileReader();
-reader.onload=function(ev){
-prev.innerHTML='<img src="'+ev.target.result+'">';
-};
-reader.readAsDataURL(f);
+var r=new FileReader();
+r.onload=function(ev){prev.innerHTML='<img src="'+ev.target.result+'">'};
+r.readAsDataURL(f);
 }else{
 prev.innerHTML='<p style="font-size:13px;color:#38a169">📄 '+f.name+' নির্বাচিত</p>';
 }
@@ -230,32 +271,25 @@ var type=document.getElementById('r-type').value;
 var date=document.getElementById('r-date').value;
 var place=document.getElementById('r-place').value;
 var note=document.getElementById('r-note').value;
-var fileInput=document.getElementById('r-file');
+var fi=document.getElementById('r-file');
 if(!date){alert('তারিখ দিন');return}
-
-function finish(fileData,fileType,fileName){
-records.push({
-id:Date.now(),type:type,date:date,place:place,note:note,
-fileData:fileData||null,fileType:fileType||null,fileName:fileName||null
-});
+function finish(fd,ft,fn){
+records.push({id:Date.now(),type:type,date:date,place:place,note:note,fileData:fd||null,fileType:ft||null,fileName:fn||null});
 save();renderRecords();
 document.getElementById('r-date').value='';
 document.getElementById('r-place').value='';
 document.getElementById('r-note').value='';
-fileInput.value='';
+fi.value='';
 document.getElementById('file-preview').innerHTML='';
 alert('✅ যোগ হয়েছে');
 }
-
-if(fileInput.files.length>0){
-var file=fileInput.files[0];
+if(fi.files.length>0){
+var file=fi.files[0];
 if(file.size>2*1024*1024){alert('ফাইল ২ MB এর কম হতে হবে');return}
 var reader=new FileReader();
 reader.onload=function(e){finish(e.target.result,file.type,file.name)};
 reader.readAsDataURL(file);
-}else{
-finish(null,null,null);
-}
+}else{finish(null,null,null)}
 }
 
 function renderRecords(){
@@ -265,18 +299,12 @@ var ft=document.getElementById('filter-type').value;
 var filtered=records.filter(function(r){
 if(ft&&r.type!==ft)return false;
 if(q){
-var m=r.type.toLowerCase().indexOf(q)!==-1||
-(r.note||'').toLowerCase().indexOf(q)!==-1||
-(r.place||'').toLowerCase().indexOf(q)!==-1;
+var m=r.type.toLowerCase().indexOf(q)!==-1||(r.note||'').toLowerCase().indexOf(q)!==-1||(r.place||'').toLowerCase().indexOf(q)!==-1;
 if(!m)return false;
 }
 return true;
 }).sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
-
-if(filtered.length===0){
-list.innerHTML='<div class="empty">কোনো রেকর্ড নেই</div>';
-return;
-}
+if(filtered.length===0){list.innerHTML='<div class="empty">কোনো রেকর্ড নেই</div>';return}
 var h='';
 filtered.forEach(function(r){
 h+='<div class="rec">';
@@ -288,26 +316,14 @@ h+='<img src="'+r.fileData+'" onclick="showImg(this.src)">';
 }else if(r.fileData){
 h+='<div style="margin-top:6px"><a href="'+r.fileData+'" download="'+(r.fileName||'report.pdf')+'" style="color:#2b6cb0">📄 '+(r.fileName||'PDF ডাউনলোড')+'</a></div>';
 }
-h+='<div class="row">';
-h+='<button class="danger" onclick="delRecord('+r.id+')">🗑️ মুছুন</button>';
-h+='</div></div>';
+h+='<div class="row"><button class="danger" onclick="delRecord('+r.id+')">🗑️ মুছুন</button></div>';
+h+='</div>';
 });
 list.innerHTML=h;
 }
 
-function showImg(src){
-document.getElementById('modalImg').src=src;
-document.getElementById('imageModal').classList.add('show');
-}
-
-function delRecord(id){
-if(!confirm('মুছবেন?'))return;
-records=records.filter(function(r){return r.id!==id});
-save();renderRecords();
-}
-
-// ===== অনুস্মারক =====
-function addReminder(){
+function showImg(src){document.getElementById('modalImg').src=src;document.getElementById('imageModal').classList.add('show')}
+function delRecord(id){if(!confirm('মুছবেন?'))return;records=records.filter(function(r){return r.id!==id});save();renderRecords()}function addReminder(){
 var t=document.getElementById('rem-title').value;
 var d=document.getElementById('rem-date').value;
 if(!t||!d){alert('সব দিন');return}
@@ -320,14 +336,10 @@ alert('⏰ যোগ হয়েছে');
 
 function renderReminders(){
 var list=document.getElementById('reminders-list');
-if(reminders.length===0){
-list.innerHTML='<div class="empty">কোনো অনুস্মারক নেই</div>';
-return;
-}
+if(reminders.length===0){list.innerHTML='<div class="empty">কোনো অনুস্মারক নেই</div>';return}
 var h='';
 reminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){
-h+='<div class="rec">';
-h+='<b>'+r.title+'</b>';
+h+='<div class="rec"><b>'+r.title+'</b>';
 h+='<div class="date">🕒 '+new Date(r.date).toLocaleString('bn-BD')+'</div>';
 h+='<div class="row">';
 h+='<button class="blue" onclick="addToCalendar('+r.id+')">📅 Calendar</button>';
@@ -337,48 +349,170 @@ h+='</div></div>';
 list.innerHTML=h;
 }
 
-function delRem(id){
-if(!confirm('মুছবেন?'))return;
-reminders=reminders.filter(function(r){return r.id!==id});
-save();renderReminders();
+function delRem(id){if(!confirm('মুছবেন?'))return;reminders=reminders.filter(function(r){return r.id!==id});save();renderReminders()}
+
+// ===== ওষুধের নতুন ফাংশন =====
+function addTimeInput(){
+var container=document.getElementById('time-inputs');
+var count=container.children.length+1;
+var div=document.createElement('div');
+div.className='time-chip';
+div.innerHTML='<input type="time" value="12:00" style="width:auto;margin:0;padding:4px;font-size:13px"><button type="button" onclick="this.parentElement.remove()" style="background:#e53e3e;color:#fff;border-radius:50%;width:20px;height:20px;padding:0;font-size:12px">×</button>';
+container.appendChild(div);
 }
 
-// ===== ওষুধ =====
 function addMed(){
 var name=document.getElementById('med-name').value;
 var dose=document.getElementById('med-dose').value;
-var time=document.getElementById('med-time').value;
-var days=document.getElementById('med-days').value;
-if(!name||!time){alert('নাম ও সময় দিন');return}
-meds.push({id:Date.now(),name:name,dose:dose,time:time,days:days||7});
+var days=parseInt(document.getElementById('med-days').value)||7;
+var timeInputs=document.querySelectorAll('#time-inputs input[type="time"]');
+var times=[];
+timeInputs.forEach(function(inp){if(inp.value)times.push(inp.value)});
+if(!name||times.length===0){alert('নাম ও সময় দিন');return}
+
+var startDate=new Date().toISOString().split('T')[0];
+var takenDays={};
+var missedDays={};
+for(var i=0;i<days;i++){
+var d=new Date();
+d.setDate(d.getDate()+i);
+var key=d.toISOString().split('T')[0];
+takenDays[key]={};
+missedDays[key]={};
+}
+
+meds.push({
+id:Date.now(),
+name:name,
+dose:dose,
+times:times,
+days:days,
+startDate:startDate,
+takenDays:takenDays,
+missedDays:missedDays
+});
 save();renderMeds();
 document.getElementById('med-name').value='';
 document.getElementById('med-dose').value='';
-document.getElementById('med-time').value='';
-alert('💊 যোগ হয়েছে');
+document.getElementById('time-inputs').innerHTML='<div class="time-chip"><input type="time" id="med-time-1" value="08:00" style="width:auto;margin:0;padding:4px;font-size:13px"></div>';
+alert('💊 ওষুধ যোগ হয়েছে');
 }
 
 function renderMeds(){
 var list=document.getElementById('meds-list');
-if(meds.length===0){
-list.innerHTML='<div class="empty">কোনো ওষুধ নেই</div>';
-return;
-}
+if(meds.length===0){list.innerHTML='<div class="empty">কোনো ওষুধ নেই</div>';updateStats();return}
+
+var today=new Date().toISOString().split('T')[0];
 var h='';
 meds.forEach(function(m){
-h+='<div class="rec med-dose">';
-h+='<b>💊 '+m.name+'</b>';
-h+='<div class="date">ডোজ: '+(m.dose||'-')+' | সময়: '+m.time+' | '+(m.days||7)+' দিন</div>';
-h+='<div class="row">';
+var totalDoses=m.days*m.times.length;
+var taken=0,missed=0;
+for(var k in m.takenDays){
+for(var t in m.takenDays[k]){if(m.takenDays[k][t])taken++}
+}
+for(var k2 in m.missedDays){
+for(var t2 in m.missedDays[k2]){if(m.missedDays[k2][t2])missed++}
+}
+var progress=totalDoses>0?Math.round((taken/totalDoses)*100):0;
+
+h+='<div class="med-card">';
+h+='<div class="med-header">';
+h+='<div><div class="med-name">💊 '+m.name+'</div>';
+h+='<div class="med-dose-text">ডোজ: '+(m.dose||'-')+' | '+m.days+' দিন | প্রতিদিন '+m.times.length+' বার</div></div>';
+h+='</div>';
+
+h+='<div class="progress"><div class="progress-bar" style="width:'+progress+'%">'+progress+'%</div></div>';
+
+h+='<div class="med-info">✅ খেয়েছেন: <b>'+taken+'</b> | ⏰ বাকি: <b>'+(totalDoses-taken)+'</b> | ❌ মিস: <b>'+missed+'</b></div>';
+
+h+='<div class="med-info">📅 শুরু: '+m.startDate+' | 📆 শেষ: '+addDays(m.startDate,m.days-1)+'</div>';
+
+h+='<h3>আজকের ডোজ ('+today+')</h3>';
+h+='<div class="time-list">';
+m.times.forEach(function(time,idx){
+var isTaken=m.takenDays[today]&&m.takenDays[today][time];
+h+='<div class="time-chip '+(isTaken?'taken':'')+'">';
+h+='⏰ '+time;
+if(isTaken){
+h+=' <span style="font-size:11px">✅</span>';
+h+=' <button onclick="untakeMed('+m.id+',\''+time+'\')" title="বাতিল">↺</button>';
+}else{
+h+=' <button onclick="takeMed('+m.id+',\''+time+'\')" style="background:#38a169;color:#fff;border-radius:50%;width:22px;height:22px;padding:0">✓</button>';
+}
+h+='</div>';
+});
+h+='</div>';
+
+h+='<h3>📅 দিন-ভিত্তিক হিসাব</h3>';
+h+='<div class="day-grid">';
+for(var i=0;i<m.days;i++){
+var d=new Date(m.startDate);
+d.setDate(d.getDate()+i);
+var key=d.toISOString().split('T')[0];
+var isFuture=d>new Date();
+var dayTaken=0;
+if(m.takenDays[key]){
+for(var t in m.takenDays[key]){if(m.takenDays[key][t])dayTaken++}
+}
+var cls='day-cell';
+if(dayTaken===m.times.length)cls+=' taken';
+else if(dayTaken>0)cls+=' taken';
+if(key===today)cls+=' today';
+if(isFuture)cls+=' future';
+h+='<div class="'+cls+'" title="'+key+'">'+(i+1)+'</div>';
+}
+h+='</div>';
+
+h+='<div class="med-actions">';
 h+='<button class="blue" onclick="addMedToCal('+m.id+')">📅 Calendar</button>';
-h+='<button class="danger" onclick="delMed('+m.id+')">🗑️</button>';
-h+='</div></div>';
+h+='<button class="danger" onclick="delMed('+m.id+')">🗑️ মুছুন</button>';
+h+='</div>';
+
+h+='</div>';
 });
 list.innerHTML=h;
+updateStats();
+}
+
+function updateStats(){
+document.getElementById('stat-total').textContent=meds.length;
+var active=0,done=0;
+var today=new Date().toISOString().split('T')[0];
+meds.forEach(function(m){
+var end=new Date(m.startDate);
+end.setDate(end.getDate()+m.days-1);
+if(new Date(today)>end)done++;
+else active++;
+});
+document.getElementById('stat-active').textContent=active;
+document.getElementById('stat-done').textContent=done;
+}
+
+function addDays(dateStr,days){
+var d=new Date(dateStr);
+d.setDate(d.getDate()+days);
+return d.toISOString().split('T')[0];
+}
+
+function takeMed(id,time){
+var m=meds.find(function(x){return x.id===id});
+if(!m)return;
+var today=new Date().toISOString().split('T')[0];
+if(!m.takenDays[today])m.takenDays[today]={};
+m.takenDays[today][time]=true;
+save();renderMeds();
+}
+
+function untakeMed(id,time){
+var m=meds.find(function(x){return x.id===id});
+if(!m)return;
+var today=new Date().toISOString().split('T')[0];
+if(m.takenDays[today])delete m.takenDays[today][time];
+save();renderMeds();
 }
 
 function delMed(id){
-if(!confirm('মুছবেন?'))return;
+if(!confirm('ওষুধটি মুছে ফেলবেন?'))return;
 meds=meds.filter(function(m){return m.id!==id});
 save();renderMeds();
 }
@@ -401,9 +535,7 @@ function addToCalendar(id){
 var rem=reminders.find(function(r){return r.id===id});
 if(!rem)return;
 if(!tokenClient){alert('Google লোড হচ্ছে');return}
-sessionStorage.setItem('pendingEvent',JSON.stringify({
-title:rem.title,date:rem.date,desc:'স্বাস্থ্য রিপোর্ট অ্যাপ থেকে'
-}));
+sessionStorage.setItem('pendingEvent',JSON.stringify({title:rem.title,date:rem.date,desc:'স্বাস্থ্য রিপোর্ট অ্যাপ থেকে'}));
 tokenClient.requestAccessToken({prompt:''});
 }
 
@@ -412,13 +544,14 @@ var m=meds.find(function(x){return x.id===id});
 if(!m)return;
 if(!tokenClient){alert('Google লোড হচ্ছে');return}
 var today=new Date();
-var parts=m.time.split(':');
-today.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
-var startISO=today.toISOString();
+var firstTime=m.times[0].split(':');
+today.setHours(parseInt(firstTime[0]),parseInt(firstTime[1]),0,0);
 sessionStorage.setItem('pendingEvent',JSON.stringify({
 title:'💊 '+m.name+' ('+(m.dose||'')+')',
-date:startISO,
-desc:'ওষুধ খাওয়ার সময়'
+date:today.toISOString(),
+desc:'ওষুধ খাওয়ার সময় — প্রতিদিন '+m.times.join(', '),
+recurring:true,
+days:m.days
 }));
 tokenClient.requestAccessToken({prompt:''});
 }
@@ -427,12 +560,7 @@ function createEvent(ev,token){
 var start=new Date(ev.date);
 var end=new Date(start.getTime()+30*60*1000);
 function fmt(d){
-var y=d.getFullYear();
-var mo=('0'+(d.getMonth()+1)).slice(-2);
-var da=('0'+d.getDate()).slice(-2);
-var h=('0'+d.getHours()).slice(-2);
-var mi=('0'+d.getMinutes()).slice(-2);
-return y+'-'+mo+'-'+da+'T'+h+':'+mi+':00';
+return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+'T'+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':00';
 }
 var event={
 summary:ev.title,
@@ -441,23 +569,23 @@ start:{dateTime:fmt(start),timeZone:'Asia/Dhaka'},
 end:{dateTime:fmt(end),timeZone:'Asia/Dhaka'},
 reminders:{useDefault:true}
 };
+if(ev.recurring){
+event.recurrence=['RRULE:FREQ=DAILY;COUNT='+(ev.days||7)];
+}
 fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
 method:'POST',
 headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
 body:JSON.stringify(event)
 }).then(function(r){return r.json()}).then(function(data){
 if(data.error){alert('সমস্যা: '+data.error.message)}
-else{alert('✅ Google Calendar-এ যোগ হয়েছে!')}
+else{alert('✅ Google Calendar-এ যোগ হয়েছে!'+((ev.recurring)?'\n'+ev.days+' দিনের জন্য প্রতিদিন ইভেন্ট তৈরি হয়েছে।':''))}
 }).catch(function(){alert('নেটওয়ার্ক সমস্যা')});
 }
 
-// ===== PDF শেয়ার =====
+// ===== PDF =====
 function renderShareList(){
 var list=document.getElementById('share-list');
-if(records.length===0){
-list.innerHTML='<div class="empty">আগে রেকর্ড যোগ করুন</div>';
-return;
-}
+if(records.length===0){list.innerHTML='<div class="empty">আগে রেকর্ড যোগ করুন</div>';return}
 var h='';
 records.forEach(function(r){
 var label=r.type+' — '+r.date+(r.place?' ('+r.place+')':'');
@@ -479,7 +607,8 @@ var selected=records.filter(function(r){return ids.indexOf(r.id)!==-1});
 var win=window.open('','_blank');
 var html='<html><head><meta charset="utf-8"><title>স্বাস্থ্য রিপোর্ট</title>';
 html+='<style>';
-html+='body{font-family:sans-serif;padding:24px;max-width:750px;margin:auto;color:#1a202c}';
+html+='@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap");';
+html+='body{font-family:"Noto Sans Bengali",sans-serif;padding:24px;max-width:750px;margin:auto;color:#1a202c}';
 html+='h1{color:#2b6cb0;border-bottom:2px solid #2b6cb0;padding-bottom:8px}';
 html+='.item{border:1px solid #cbd5e0;border-radius:8px;padding:14px;margin:14px 0;page-break-inside:avoid}';
 html+='.t{font-weight:bold;color:#2b6cb0;font-size:17px;margin-bottom:4px}';
@@ -489,7 +618,6 @@ html+='.notice{background:#fefcbf;padding:12px;border-left:4px solid #d69e2e;fon
 html+='.header-info{background:#ebf8ff;padding:12px;border-radius:8px;margin-bottom:16px}';
 html+='@media print{.noprint{display:none}}';
 html+='</style></head><body>';
-
 html+='<h1>🩺 স্বাস্থ্য রিপোর্ট</h1>';
 html+='<div class="header-info">';
 html+='<p><b>রোগীর নাম:</b> '+(profile.name||'—')+'</p>';
@@ -498,22 +626,17 @@ html+='<p><b>ফোন:</b> '+(profile.phone||'—')+'</p>';
 html+='<p><b>তৈরির তারিখ:</b> '+new Date().toLocaleString('bn-BD')+'</p>';
 html+='</div>';
 html+='<div class="notice">⚠️ এই ডকুমেন্ট রোগীর সম্মতিতে শেয়ার করা হয়েছে। এটি রোগনির্ণয় বা চিকিৎসকের বিকল্প নয়।</div>';
-
 selected.forEach(function(r){
 html+='<div class="item">';
 html+='<div class="t">'+r.type+'</div>';
 html+='<div class="d">📅 '+r.date+(r.place?' | 🏥 '+r.place:'')+'</div>';
 if(r.note)html+='<p style="margin:8px 0">'+r.note+'</p>';
-if(r.fileData&&r.fileType&&r.fileType.indexOf('image')===0){
-html+='<img src="'+r.fileData+'">';
-}
+if(r.fileData&&r.fileType&&r.fileType.indexOf('image')===0)html+='<img src="'+r.fileData+'">';
 html+='</div>';
 });
-
 html+='<button class="noprint" onclick="window.print()" style="padding:12px 24px;background:#2b6cb0;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;margin-top:16px">🖨️ PDF সেভ / প্রিন্ট করুন</button>';
 html+='<p class="noprint" style="margin-top:10px;font-size:12px;color:#718096">প্রিন্ট ডায়ালগে Destination = "Save as PDF" নির্বাচন করুন।</p>';
 html+='</body></html>';
-
 win.document.write(html);
 win.document.close();
 }
@@ -532,4 +655,4 @@ renderMeds();
 </script>
 
 </body>
-  </html>
+</html>
