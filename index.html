@@ -365,8 +365,7 @@ function addMed(){
 var name=document.getElementById('med-name').value;
 var dose=document.getElementById('med-dose').value;
 var days=parseInt(document.getElementById('med-days').value)||7;
-var timeInputs=document.querySelectorAll('#time-inputs input[type="time"]');
-var times=[];
+var timeInputs=document.querySelectorAll('#time-inputs input[type="time"], .time-chip input[type="time"]');var times=[];
 timeInputs.forEach(function(inp){if(inp.value)times.push(inp.value)});
 if(!name||times.length===0){alert('নাম ও সময় দিন');return}
 
