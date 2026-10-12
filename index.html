@@ -186,10 +186,17 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 <!-- শেয়ার ট্যাব -->
 <div id="tab-share" class="hidden">
 <div class="card">
-<h2>📄 PDF শেয়ার</h2>
+<h2>📄 রিপোর্ট শেয়ার</h2>
 <p style="font-size:13px;color:#718096;margin-bottom:8px">যেসব রেকর্ড দেখাতে চান সেগুলো টিক দিন।</p>
+<button class="small blue" onclick="selectAllShare()" style="margin-bottom:8px">☑️ সব সিলেক্ট করুন</button>
+<button class="small danger" onclick="unselectAllShare()" style="margin-bottom:8px">✖️ সব বাতিল</button>
 <div id="share-list"></div>
-<button onclick="exportPDF()" class="blue" style="margin-top:10px">📄 PDF ডাউনলোড</button>
+<button onclick="exportPDF()" class="blue" style="margin-top:10px">📄 PDF তৈরি করুন</button>
+<div id="share-actions" style="margin-top:10px;display:none">
+<button class="green" onclick="shareWhatsApp()">📤 WhatsApp</button>
+<button class="blue" onclick="shareEmail()">📧 Email</button>
+<button onclick="copyText()">📋 টেক্সট কপি</button>
+</div>
 </div>
 </div>
 
@@ -592,8 +599,7 @@ if(data.error){alert('সমস্যা: '+data.error.message)}
 else{alert('✅ Google Calendar-এ যোগ হয়েছে!'+((ev.recurring)?'\n'+ev.days+' দিনের জন্য প্রতিদিন ইভেন্ট তৈরি হয়েছে।':''))}
 }).catch(function(){alert('নেটওয়ার্ক সমস্যা')});
 }
-
-// ===== PDF =====
+// ===== PDF ও শেয়ার =====
 function renderShareList(){
 var list=document.getElementById('share-list');
 if(records.length===0){list.innerHTML='<div class="empty">আগে রেকর্ড যোগ করুন</div>';return}
@@ -601,33 +607,104 @@ var h='';
 records.forEach(function(r){
 var label=r.type+' — '+r.date+(r.place?' ('+r.place+')':'');
 h+='<label class="check-row">';
-h+='<input type="checkbox" value="'+r.id+'" class="share-check">';
+h+='<input type="checkbox" value="'+r.id+'" class="share-check" onchange="updateShareActions()">';
 h+='<span>'+label+'</span>';
 h+='</label>';
 });
 list.innerHTML=h;
+updateShareActions();
+}
+
+function updateShareActions(){
+var checks=document.querySelectorAll('.share-check:checked');
+var actions=document.getElementById('share-actions');
+if(actions){actions.style.display=checks.length>0?'block':'none'}
+}
+
+function selectAllShare(){
+document.querySelectorAll('.share-check').forEach(function(c){c.checked=true});
+updateShareActions();
+}
+
+function unselectAllShare(){
+document.querySelectorAll('.share-check').forEach(function(c){c.checked=false});
+updateShareActions();
+}
+
+function getSelectedRecords(){
+var ids=[];
+document.querySelectorAll('.share-check:checked').forEach(function(c){ids.push(Number(c.value))});
+return records.filter(function(r){return ids.indexOf(r.id)!==-1});
+}
+
+function buildShareText(){
+var sel=getSelectedRecords();
+var txt='🩺 স্বাস্থ্য রিপোর্ট\n';
+txt+='━━━━━━━━━━━━━━━\n';
+txt+='রোগী: '+(profile.name||'—')+'\n';
+txt+='বয়স: '+(profile.age||'—')+'\n';
+if(profile.phone)txt+='ফোন: '+profile.phone+'\n';
+txt+='তারিখ: '+new Date().toLocaleDateString('bn-BD')+'\n';
+txt+='━━━━━━━━━━━━━━━\n\n';
+sel.forEach(function(r,i){
+txt+=(i+1)+'. '+r.type+'\n';
+txt+='   তারিখ: '+r.date+'\n';
+if(r.place)txt+='   হাসপাতাল: '+r.place+'\n';
+if(r.note)txt+='   নোট: '+r.note+'\n';
+txt+='\n';
+});
+txt+='━━━━━━━━━━━━━━━\n';
+txt+='⚠️ এটি রোগনির্ণয় বা চিকিৎসকের বিকল্প নয়।';
+return txt;
+}
+
+function shareWhatsApp(){
+var txt=buildShareText();
+window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+}
+
+function shareEmail(){
+var txt=buildShareText();
+window.location.href='mailto:?subject='+encodeURIComponent('স্বাস্থ্য রিপোর্ট')+'&body='+encodeURIComponent(txt);
+}
+
+function copyText(){
+var txt=buildShareText();
+if(navigator.clipboard&&navigator.clipboard.writeText){
+navigator.clipboard.writeText(txt).then(function(){alert('✅ টেক্সট কপি হয়েছে! WhatsApp/Email-এ পেস্ট করুন।')}).catch(function(){fallbackCopy(txt)});
+}else{
+fallbackCopy(txt);
+}
+}
+
+function fallbackCopy(txt){
+var ta=document.createElement('textarea');
+ta.value=txt;
+document.body.appendChild(ta);
+ta.select();
+try{document.execCommand('copy');alert('✅ টেক্সট কপি হয়েছে!')}catch(e){alert('কপি করা যায়নি')}
+document.body.removeChild(ta);
 }
 
 function exportPDF(){
-var checks=document.querySelectorAll('.share-check:checked');
-var ids=[];
-for(var i=0;i<checks.length;i++)ids.push(Number(checks[i].value));
-if(ids.length===0){alert('অন্তত একটি রেকর্ড টিক দিন');return}
-var selected=records.filter(function(r){return ids.indexOf(r.id)!==-1});
+var selected=getSelectedRecords();
+if(selected.length===0){alert('অন্তত একটি রেকর্ড টিক দিন');return}
 
 var win=window.open('','_blank');
 var html='<html><head><meta charset="utf-8"><title>স্বাস্থ্য রিপোর্ট</title>';
 html+='<style>';
 html+='@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap");';
 html+='body{font-family:"Noto Sans Bengali",sans-serif;padding:24px;max-width:750px;margin:auto;color:#1a202c}';
-html+='h1{color:#2b6cb0;border-bottom:2px solid #2b6cb0;padding-bottom:8px}';
+html+='h1{color:#2b6cb0;border-bottom:3px solid #2b6cb0;padding-bottom:10px;margin-bottom:16px}';
 html+='.item{border:1px solid #cbd5e0;border-radius:8px;padding:14px;margin:14px 0;page-break-inside:avoid}';
-html+='.t{font-weight:bold;color:#2b6cb0;font-size:17px;margin-bottom:4px}';
+html+='.t{font-weight:bold;color:#2b6cb0;font-size:17px;margin-bottom:6px}';
 html+='.d{color:#718096;font-size:13px;margin:4px 0}';
 html+='img{max-width:100%;margin-top:10px;border-radius:6px}';
-html+='.notice{background:#fefcbf;padding:12px;border-left:4px solid #d69e2e;font-size:13px;border-radius:6px;margin-bottom:16px}';
-html+='.header-info{background:#ebf8ff;padding:12px;border-radius:8px;margin-bottom:16px}';
-html+='@media print{.noprint{display:none}}';
+html+='.notice{background:#fefcbf;padding:12px;border-left:4px solid #d69e2e;font-size:13px;border-radius:6px;margin:16px 0}';
+html+='.header-info{background:#ebf8ff;padding:14px;border-radius:8px;margin-bottom:16px;border-left:4px solid #2b6cb0}';
+html+='.header-info p{margin:4px 0;font-size:14px}';
+html+='.footer{text-align:center;color:#a0aec0;font-size:11px;margin-top:20px}';
+html+='@media print{.noprint{display:none}body{padding:10px}}';
 html+='</style></head><body>';
 html+='<h1>🩺 স্বাস্থ্য রিপোর্ট</h1>';
 html+='<div class="header-info">';
@@ -637,16 +714,17 @@ html+='<p><b>ফোন:</b> '+(profile.phone||'—')+'</p>';
 html+='<p><b>তৈরির তারিখ:</b> '+new Date().toLocaleString('bn-BD')+'</p>';
 html+='</div>';
 html+='<div class="notice">⚠️ এই ডকুমেন্ট রোগীর সম্মতিতে শেয়ার করা হয়েছে। এটি রোগনির্ণয় বা চিকিৎসকের বিকল্প নয়।</div>';
-selected.forEach(function(r){
+selected.forEach(function(r,i){
 html+='<div class="item">';
-html+='<div class="t">'+r.type+'</div>';
+html+='<div class="t">'+(i+1)+'. '+r.type+'</div>';
 html+='<div class="d">📅 '+r.date+(r.place?' | 🏥 '+r.place:'')+'</div>';
 if(r.note)html+='<p style="margin:8px 0">'+r.note+'</p>';
 if(r.fileData&&r.fileType&&r.fileType.indexOf('image')===0)html+='<img src="'+r.fileData+'">';
 html+='</div>';
 });
-html+='<button class="noprint" onclick="window.print()" style="padding:12px 24px;background:#2b6cb0;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;margin-top:16px">🖨️ PDF সেভ / প্রিন্ট করুন</button>';
-html+='<p class="noprint" style="margin-top:10px;font-size:12px;color:#718096">প্রিন্ট ডায়ালগে Destination = "Save as PDF" নির্বাচন করুন।</p>';
+html+='<div class="footer">স্বাস্থ্য রিপোর্ট অ্যাপ থেকে তৈরি</div>';
+html+='<button class="noprint" onclick="window.print()" style="padding:12px 24px;background:#2b6cb0;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;margin-top:16px;width:100%">🖨️ PDF সেভ / প্রিন্ট করুন</button>';
+html+='<p class="noprint" style="margin-top:10px;font-size:12px;color:#718096;text-align:center">প্রিন্ট ডায়ালগে Destination = "Save as PDF" নির্বাচন করুন।</p>';
 html+='</body></html>';
 win.document.write(html);
 win.document.close();
