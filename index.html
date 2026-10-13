@@ -67,9 +67,57 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 .stat-item{flex:1;background:#ebf8ff;padding:8px;border-radius:8px;text-align:center}
 .stat-item .num{font-size:18px;font-weight:bold;color:#2b6cb0}
 .stat-item .label{font-size:11px;color:#718096}
-</style>
+/* ===== লক স্ক্রিন ===== */
+.lock-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#2b6cb0,#1a365d);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.lock-box{background:#fff;border-radius:20px;padding:30px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.lock-icon{font-size:48px;margin-bottom:8px}
+.lock-box h2{color:#2b6cb0;font-size:20px;margin:0 0 4px}
+.lock-box p{color:#718096;font-size:13px;margin:0 0 20px}
+.pin-display{display:flex;justify-content:center;gap:16px;margin:20px 0}
+.pin-dot{width:16px;height:16px;border-radius:50%;background:#e2e8f0;transition:all .2s}
+.pin-dot.filled{background:#2b6cb0;transform:scale(1.2)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.pin-pad button{aspect-ratio:1;font-size:22px;font-weight:bold;background:#f7fafc;color:#2d3748;border:1px solid #e2e8f0;border-radius:50%;margin:0;padding:0;transition:all .15s;cursor:pointer}
+.pin-pad button:hover{background:#ebf8ff;border-color:#2b6cb0}
+.pin-pad button:active{transform:scale(.95);background:#2b6cb0;color:#fff}
+.pin-pad .pin-clear{color:#e53e3e}
+.pin-pad .pin-del{color:#d69e2e}
+.pin-error{color:#e53e3e;font-size:13px;min-height:20px;margin:10px 0 0}
+.link-btn{background:none;border:none;color:#2b6cb0;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:10px;width:auto;padding:4px}
+.pin-setup-box{background:#f7fafc;padding:12px;border-radius:8px;margin:10px 0;border:1px solid #e2e8f0}
+.pin-setup-box input{text-align:center;font-size:20px;letter-spacing:8px;font-weight:bold}
+/* ===== লক স্ক্রিন শেষ ===== */</style>
 </head>
-<body>
+<body><!-- লক স্ক্রিন -->
+<div id="lock-screen" class="lock-screen">
+<div class="lock-box">
+<div class="lock-icon">🔒</div>
+<h2>স্বাস্থ্য রিপোর্ট</h2>
+<p id="lock-message">পিন দিন</p>
+<div class="pin-display">
+<span class="pin-dot" id="dot1"></span>
+<span class="pin-dot" id="dot2"></span>
+<span class="pin-dot" id="dot3"></span>
+<span class="pin-dot" id="dot4"></span>
+</div>
+<div class="pin-pad">
+<button onclick="pressPin('1')">1</button>
+<button onclick="pressPin('2')">2</button>
+<button onclick="pressPin('3')">3</button>
+<button onclick="pressPin('4')">4</button>
+<button onclick="pressPin('5')">5</button>
+<button onclick="pressPin('6')">6</button>
+<button onclick="pressPin('7')">7</button>
+<button onclick="pressPin('8')">8</button>
+<button onclick="pressPin('9')">9</button>
+<button onclick="pressPin('clear')" class="pin-clear">✕</button>
+<button onclick="pressPin('0')">0</button>
+<button onclick="pressPin('del')" class="pin-del">⌫</button>
+</div>
+<p id="pin-error" class="pin-error"></p>
+<button class="link-btn" onclick="showForgotPin()">পিন ভুলে গেছেন?</button>
+</div>
+</div>
 
 <header>
 <h1>🩺 আমার স্বাস্থ্য রিপোর্ট</h1>
@@ -200,6 +248,40 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 </div>
 </div>
 
+</div><!-- সেটিংস ট্যাব -->
+<div id="tab-settings" class="hidden">
+<div class="card">
+<h2>🔐 সুরক্ষা সেটিংস</h2>
+<p style="font-size:13px;color:#718096;margin-bottom:12px">আপনার স্বাস্থ্য রিপোর্ট সুরক্ষিত রাখতে পিন সেট করুন।</p>
+<div id="pin-status-box">
+<p id="pin-status-text" style="font-size:14px;margin:8px 0"></p>
+</div>
+<div class="pin-setup-box">
+<h3 style="font-size:14px;color:#2b6cb0;margin:0 0 8px">🔒 ৪-ডিজিট পিন সেট করুন</h3>
+<input id="new-pin" type="password" maxlength="4" placeholder="নতুন পিন" inputmode="numeric">
+<input id="confirm-pin" type="password" maxlength="4" placeholder="আবার পিন দিন" inputmode="numeric">
+<button onclick="savePin()">পিন সংরক্ষণ করুন</button>
+</div>
+<div class="pin-setup-box">
+<h3 style="font-size:14px;color:#2b6cb0;margin:0 0 8px">❓ গোপন প্রশ্ন (পিন ভুলে গেলে)</h3>
+<input id="secret-q" placeholder="প্রশ্ন (যেমন: প্রথম স্কুলের নাম?)" style="font-size:14px">
+<input id="secret-a" placeholder="উত্তর" style="font-size:14px">
+<button onclick="saveSecret()">প্রশ্ন সংরক্ষণ করুন</button>
+<p style="font-size:12px;color:#718096;margin-top:6px">পিন ভুলে গেলে এই প্রশ্নের উত্তর দিয়ে রিসেট করতে পারবেন।</p>
+</div>
+<div class="pin-setup-box">
+<h3 style="font-size:14px;color:#2b6cb0;margin:0 0 8px">⏱️ অটো-লক</h3>
+<select id="auto-lock">
+<option value="0">সবসময় লক করবে না</option>
+<option value="1">১ মিনিট পর</option>
+<option value="5" selected>৫ মিনিট পর</option>
+<option value="15">১৫ মিনিট পর</option>
+<option value="30">৩০ মিনিট পর</option>
+</select>
+<p style="font-size:12px;color:#718096;margin-top:6px">এই সময় কোনো কাজ না করলে অ্যাপ নিজে থেকে লক হবে।</p>
+</div>
+<button class="danger" onclick="removePin()" style="margin-top:10px">🚪 পিন সরিয়ে ফেলুন</button>
+</div>
 </div>
 
 <div class="tabbar">
@@ -208,6 +290,7 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 <button id="btn-reminders" onclick="tab('reminders')">অনুস্মারক</button>
 <button id="btn-meds" onclick="tab('meds')">ওষুধ</button>
 <button id="btn-share" onclick="tab('share')">শেয়ার</button>
+  <button id="btn-settings" onclick="tab('settings')">সেটিংস</button>
 </div>
 
 <div id="imageModal" class="modal" onclick="this.classList.remove('show')">
@@ -234,7 +317,7 @@ localStorage.setItem('meds',JSON.stringify(meds));
 }
 
 function tab(t){
-['profile','records','reminders','meds','share'].forEach(function(x){
+['profile','records','reminders','meds','share','settings'].forEach(function(x){
 document.getElementById('tab-'+x).classList.add('hidden');
 var b=document.getElementById('btn-'+x);
 if(b)b.classList.remove('active');
@@ -245,6 +328,7 @@ if(t==='records')renderRecords();
 if(t==='reminders')renderReminders();
 if(t==='meds')renderMeds();
 if(t==='share')renderShareList();
+if(t==='settings')updatePinStatus();
 }
 
 function saveProfile(){
@@ -741,7 +825,163 @@ renderRecords();
 renderReminders();
 renderMeds();
 });
-</script>
+// ===== পাসওয়ার্ড ও সুরক্ষা =====
+var pinBuffer='';
+var savedPin=localStorage.getItem('appPin')||'';
+var autoLockTime=parseInt(localStorage.getItem('autoLock')||'5');
+var lockTimer=null;
+
+function checkLock(){
+if(savedPin){
+document.getElementById('lock-screen').style.display='flex';
+}else{
+document.getElementById('lock-screen').style.display='none';
+}
+resetLockTimer();
+}
+
+function pressPin(val){
+if(val==='del'){
+pinBuffer=pinBuffer.slice(0,-1);
+}else if(val==='clear'){
+pinBuffer='';
+}else if(pinBuffer.length<4){
+pinBuffer+=val;
+}
+updatePinDisplay();
+if(pinBuffer.length===4){
+setTimeout(verifyPin,200);
+}
+}
+
+function updatePinDisplay(){
+for(var i=1;i<=4;i++){
+var dot=document.getElementById('dot'+i);
+if(dot){
+if(i<=pinBuffer.length)dot.classList.add('filled');
+else dot.classList.remove('filled');
+}
+}
+}
+
+function verifyPin(){
+if(pinBuffer===savedPin){
+document.getElementById('pin-error').textContent='';
+document.getElementById('lock-screen').style.display='none';
+pinBuffer='';
+updatePinDisplay();
+resetLockTimer();
+}else{
+document.getElementById('pin-error').textContent='❌ ভুল পিন';
+pinBuffer='';
+updatePinDisplay();
+if(navigator.vibrate)navigator.vibrate(200);
+}
+}
+
+function showForgotPin(){
+var q=localStorage.getItem('secretQ')||'';
+if(!q){
+alert('গোপন প্রশ্ন সেট করা নেই। পিন রিসেট করা যাবে না।');
+return;
+}
+var ans=prompt(q);
+if(ans===null)return;
+var savedA=localStorage.getItem('secretA')||'';
+if(ans.trim().toLowerCase()===savedA.toLowerCase()){
+var newPin=prompt('নতুন ৪-ডিজিট পিন দিন:');
+if(newPin&&newPin.length===4&&/^\d{4}$/.test(newPin)){
+localStorage.setItem('appPin',newPin);
+savedPin=newPin;
+alert('✅ পিন রিসেট হয়েছে!');
+document.getElementById('lock-screen').style.display='none';
+}else{
+alert('❌ ভুল পিন ফরম্যাট। ৪ ডিজিট সংখ্যা দিন।');
+}
+}else{
+alert('❌ ভুল উত্তর');
+}
+}
+
+function savePin(){
+var p1=document.getElementById('new-pin').value;
+var p2=document.getElementById('confirm-pin').value;
+if(!/^\d{4}$/.test(p1)){alert('৪ ডিজিট সংখ্যা দিন');return}
+if(p1!==p2){alert('দুইটা পিন মিলছে না');return}
+localStorage.setItem('appPin',p1);
+savedPin=p1;
+document.getElementById('new-pin').value='';
+document.getElementById('confirm-pin').value='';
+alert('✅ পিন সেভ হয়েছে!');
+updatePinStatus();
+}
+
+function saveSecret(){
+var q=document.getElementById('secret-q').value.trim();
+var a=document.getElementById('secret-a').value.trim();
+if(!q||!a){alert('প্রশ্ন ও উত্তর দুটোই দিন');return}
+localStorage.setItem('secretQ',q);
+localStorage.setItem('secretA',a);
+document.getElementById('secret-q').value='';
+document.getElementById('secret-a').value='';
+alert('✅ গোপন প্রশ্ন সেভ হয়েছে!');
+}
+
+function removePin(){
+if(!confirm('পিন সরিয়ে ফেললে অ্যাপ আর সুরক্ষিত থাকবে না। আপনি নিশ্চিত?'))return;
+localStorage.removeItem('appPin');
+savedPin='';
+document.getElementById('lock-screen').style.display='none';
+updatePinStatus();
+alert('✅ পিন সরানো হয়েছে');
+}
+
+function updatePinStatus(){
+var txt=document.getElementById('pin-status-text');
+if(!txt)return;
+if(savedPin){
+txt.innerHTML='✅ <b>পিন সক্রিয়</b> — আপনার অ্যাপ সুরক্ষিত';
+txt.style.color='#38a169';
+}else{
+txt.innerHTML='⚠️ <b>পিন সেট করা নেই</b> — সুরক্ষার জন্য পিন সেট করুন';
+txt.style.color='#d69e2e';
+}
+}
+
+function resetLockTimer(){
+if(lockTimer)clearTimeout(lockTimer);
+if(!savedPin)return;
+if(autoLockTime>0){
+lockTimer=setTimeout(function(){
+document.getElementById('lock-screen').style.display='flex';
+pinBuffer='';
+updatePinDisplay();
+document.getElementById('pin-error').textContent='';
+},autoLockTime*60*1000);
+}
+}
+
+var autoLockSelect=document.getElementById('auto-lock');
+if(autoLockSelect){
+autoLockSelect.addEventListener('change',function(e){
+autoLockTime=parseInt(e.target.value);
+localStorage.setItem('autoLock',autoLockTime);
+resetLockTimer();
+});
+}
+
+['click','keypress','touchstart'].forEach(function(evt){
+document.addEventListener(evt,resetLockTimer);
+});
+
+window.addEventListener('load',function(){
+setTimeout(function(){
+checkLock();
+updatePinStatus();
+var sel=document.getElementById('auto-lock');
+if(sel)sel.value=autoLockTime;
+},500);
+});</script>
 
 </body>
 </html>
