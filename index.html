@@ -758,9 +758,10 @@ else{alert('✅ Google Calendar-এ যোগ হয়েছে!'+((ev.recurrin
 // ===== PDF ও শেয়ার =====
 function renderShareList(){
 var list=document.getElementById('share-list');
-if(records.length===0){list.innerHTML='<div class="empty">আগে রেকর্ড যোগ করুন</div>';return}
+var myShareRecords=getMyRecords();
+if(myShareRecords.length===0){list.innerHTML='<div class="empty">আগে রেকর্ড যোগ করুন</div>';return}
 var h='';
-records.forEach(function(r){
+myShareRecords.forEach(function(r){
 var label=r.type+' — '+r.date+(r.place?' ('+r.place+')':'');
 h+='<label class="check-row">';
 h+='<input type="checkbox" value="'+r.id+'" class="share-check" onchange="updateShareActions()">';
@@ -790,16 +791,18 @@ updateShareActions();
 function getSelectedRecords(){
 var ids=[];
 document.querySelectorAll('.share-check:checked').forEach(function(c){ids.push(Number(c.value))});
-return records.filter(function(r){return ids.indexOf(r.id)!==-1});
-}
+var myRecords=getMyRecords();
+return myRecords.filter(function(r){return ids.indexOf(r.id)!==-1});
+  }
 
 function buildShareText(){
 var sel=getSelectedRecords();
 var txt='🩺 স্বাস্থ্য রিপোর্ট\n';
+var _cp=getCurrentProfile()||{};
 txt+='━━━━━━━━━━━━━━━\n';
-txt+='রোগী: '+(profile.name||'—')+'\n';
-txt+='বয়স: '+(profile.age||'—')+'\n';
-if(profile.phone)txt+='ফোন: '+profile.phone+'\n';
+txt+='রোগী: '+(_cp.name||'—')+'\n';
+txt+='বয়স: '+(_cp.age||'—')+'\n';
+if(_cp.phone)txt+='ফোন: '+_cp.phone+'\n';
 txt+='তারিখ: '+new Date().toLocaleDateString('bn-BD')+'\n';
 txt+='━━━━━━━━━━━━━━━\n\n';
 sel.forEach(function(r,i){
