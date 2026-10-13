@@ -126,9 +126,16 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 </header>
 
 <div class="container">
-<div class="notice">⚠️ এই অ্যাপ রোগনির্ণয়ের বিকল্প নয়।</div><!-- প্রোফাইল ট্যাব -->
+<div class="notice">⚠️ এই অ্যাপ রোগনির্ণয়ের বিকল্প নয়।</div>
+<!-- প্রোফাইল ট্যাব -->
 <div id="tab-profile">
 <div class="card">
+<div class="profile-switcher" style="background:#ebf8ff;padding:10px;border-radius:8px;margin-bottom:10px;border-left:4px solid #2b6cb0">
+<label style="font-size:12px;color:#2b6cb0;font-weight:bold;display:block;margin-bottom:4px">👥 বর্তমান প্রোফাইল:</label>
+<select id="current-profile" onchange="switchProfile()" style="margin:0">
+<option value="">— প্রোফাইল নির্বাচন করুন —</option>
+</select>
+</div>
 <h2>👤 আমার প্রোফাইল</h2>
 <input id="p-name" placeholder="আপনার নাম">
 <input id="p-phone" placeholder="ফোন নম্বর" type="tel">
@@ -331,6 +338,19 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 <h2 style="margin:12px 4px">📋 আমার স্বাস্থ্য রেকর্ড</h2>
 <div id="health-records-list"></div>
 </div>
+<!-- পরিবার ট্যাব -->
+<div id="tab-family" class="hidden">
+<div class="card">
+<h2>👨‍👩‍👧 আমার পরিবার</h2>
+<p style="font-size:13px;color:#718096;margin-bottom:12px">পরিবারের প্রতিটা সদস্যের আলাদা প্রোফাইল রাখুন।</p>
+<div id="family-list"></div>
+<button class="green" onclick="showAddProfile()" style="margin-top:10px">+ নতুন সদস্য যোগ করুন</button>
+</div>
+<div class="card">
+<h2>📊 সদস্য অনুযায়ী হিসাব</h2>
+<div id="family-stats"></div>
+</div>
+</div>
 <div class="tabbar">
 <button id="btn-profile" onclick="tab('profile')" class="active">প্রোফাইল</button>
 <button id="btn-records" onclick="tab('records')">রেকর্ড</button>
@@ -339,6 +359,7 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 <button id="btn-share" onclick="tab('share')">শেয়ার</button>
 <button id="btn-settings" onclick="tab('settings')">সেটিংস</button>
 <button id="btn-health" onclick="tab('health')">স্বাস্থ্য</button>
+<button id="btn-family" onclick="tab('family')">পরিবার</button>
 </div>
 
 <div id="imageModal" class="modal" onclick="this.classList.remove('show')">
@@ -365,7 +386,7 @@ localStorage.setItem('meds',JSON.stringify(meds));
 }
 
 function tab(t){
-['profile','records','reminders','meds','share','settings','health'].forEach(function(x){
+['profile','records','reminders','meds','share','settings','health','family'].forEach(function(x){
 document.getElementById('tab-'+x).classList.add('hidden');
 var b=document.getElementById('btn-'+x);
 if(b)b.classList.remove('active');
@@ -378,6 +399,7 @@ if(t==='meds')renderMeds();
 if(t==='share')renderShareList();
 if(t==='settings')updatePinStatus();
 if(t==='health'){updateHealthFields();renderHealthRecords();renderHealthChart();loadGoals();}
+if(t==='family'){renderFamily();}
 }
 
 function saveProfile(){
@@ -1243,7 +1265,185 @@ renderHealthRecords();
 renderHealthChart();
 loadGoals();
 }
-};</script>
+};// ===== পরিবার সিস্টেম =====
+var profiles=[];
+var currentProfileId=null;
+
+function loadProfiles(){
+try{
+profiles=JSON.parse(localStorage.getItem('profiles')||'[]');
+currentProfileId=parseInt(localStorage.getItem('currentProfileId')||'0')||null;
+}catch(e){profiles=[];currentProfileId=null}
+
+// মাইগ্রেশন: পুরোনো profile থাকলে নতুন স্ট্রাকচারে নিন
+if(profiles.length===0){
+var oldProfile={};
+try{oldProfile=JSON.parse(localStorage.getItem('profile')||'{}')}catch(e){}
+if(oldProfile.name){
+var newId=Date.now();
+profiles=[{id:newId,name:oldProfile.name,phone:oldProfile.phone||'',age:oldProfile.age||'',gender:oldProfile.gender||''}];
+currentProfileId=newId;
+localStorage.setItem('profiles',JSON.stringify(profiles));
+localStorage.setItem('currentProfileId',newId);
+}
+}
+}
+
+function saveProfiles(){
+localStorage.setItem('profiles',JSON.stringify(profiles));
+if(currentProfileId)localStorage.setItem('currentProfileId',currentProfileId);
+}
+
+function getCurrentProfile(){
+return profiles.find(function(p){return p.id===currentProfileId})||null;
+}
+
+function renderProfileSwitcher(){
+var sel=document.getElementById('current-profile');
+if(!sel)return;
+var h='<option value="">— প্রোফাইল নির্বাচন করুন —</option>';
+profiles.forEach(function(p){
+h+='<option value="'+p.id+'"'+(p.id===currentProfileId?' selected':'')+'>'+p.name+'</option>';
+});
+sel.innerHTML=h;
+}
+
+function switchProfile(){
+var sel=document.getElementById('current-profile');
+if(!sel)return;
+var val=sel.value;
+if(!val){currentProfileId=null;saveProfiles();clearProfileFields();return}
+currentProfileId=parseInt(val);
+saveProfiles();
+var p=getCurrentProfile();
+if(p){
+document.getElementById('p-name').value=p.name||'';
+document.getElementById('p-phone').value=p.phone||'';
+document.getElementById('p-age').value=p.age||'';
+document.getElementById('p-gender').value=p.gender||'';
+}
+}
+
+function clearProfileFields(){
+document.getElementById('p-name').value='';
+document.getElementById('p-phone').value='';
+document.getElementById('p-age').value='';
+document.getElementById('p-gender').value='';
+}
+
+function showAddProfile(){
+var name=prompt('নতুন সদস্যের নাম:');
+if(!name||!name.trim())return;
+var newId=Date.now();
+profiles.push({id:newId,name:name.trim(),phone:'',age:'',gender:''});
+currentProfileId=newId;
+saveProfiles();
+renderProfileSwitcher();
+renderFamily();
+document.getElementById('p-name').value=name.trim();
+document.getElementById('p-phone').value='';
+document.getElementById('p-age').value='';
+document.getElementById('p-gender').value='';
+alert('✅ '+name+' যোগ হয়েছে! এখন প্রোফাইল তথ্য পূরণ করুন।');
+tab('profile');
+}
+
+function renderFamily(){
+var list=document.getElementById('family-list');
+var stats=document.getElementById('family-stats');
+if(!list)return;
+if(profiles.length===0){
+list.innerHTML='<div class="empty">কোনো সদস্য নেই। "+ নতুন সদস্য যোগ করুন" চাপুন।</div>';
+if(stats)stats.innerHTML='';
+return;
+}
+var h='';
+profiles.forEach(function(p){
+var isCurrent=p.id===currentProfileId;
+h+='<div class="rec" style="border-left-color:'+(isCurrent?'#38a169':'#2b6cb0')+'">';
+h+='<b>'+p.name+'</b>'+(isCurrent?' <span class="pill" style="background:#c6f6d5;color:#22543d">বর্তমান</span>':'');
+if(p.age)h+='<div class="date">বয়স: '+p.age+(p.gender?' | '+p.gender:'')+'</div>';
+if(p.phone)h+='<div class="date">📞 '+p.phone+'</div>';
+h+='<div class="row" style="margin-top:6px">';
+if(!isCurrent)h+='<button class="blue" onclick="selectProfile('+p.id+')">সুইচ করুন</button>';
+h+='<button class="danger" onclick="deleteProfile('+p.id+')">🗑️ মুছুন</button>';
+h+='</div></div>';
+});
+list.innerHTML=h;
+
+var sh='<div class="stat-box">';
+sh+='<div class="stat-item"><div class="num">'+profiles.length+'</div><div class="label">মোট সদস্য</div></div>';
+sh+='<div class="stat-item"><div class="num">'+(currentProfileId?'1':'0')+'</div><div class="label">বর্তমান</div></div>';
+sh+='</div>';
+if(stats)stats.innerHTML=sh;
+}
+
+function selectProfile(id){
+currentProfileId=id;
+saveProfiles();
+renderProfileSwitcher();
+var p=getCurrentProfile();
+if(p){
+document.getElementById('p-name').value=p.name||'';
+document.getElementById('p-phone').value=p.phone||'';
+document.getElementById('p-age').value=p.age||'';
+document.getElementById('p-gender').value=p.gender||'';
+}
+alert('✅ '+p.name+' প্রোফাইল সিলেক্ট হয়েছে');
+tab('profile');
+}
+
+function deleteProfile(id){
+var p=profiles.find(function(x){return x.id===id});
+if(!p)return;
+if(!confirm(p.name+' কে মুছে ফেলবেন?'))return;
+profiles=profiles.filter(function(x){return x.id!==id});
+if(currentProfileId===id){
+currentProfileId=profiles.length>0?profiles[0].id:null;
+}
+saveProfiles();
+renderProfileSwitcher();
+renderFamily();
+alert('✅ '+p.name+' মুছে ফেলা হয়েছে');
+}
+
+// saveProfile ফাংশন আপডেট
+var _origSaveProfile=saveProfile;
+saveProfile=function(){
+if(!currentProfileId){
+alert('প্রথমে একটা প্রোফাইল সিলেক্ট করুন বা নতুন সদস্য যোগ করুন');
+tab('family');
+return;
+}
+var p=profiles.find(function(x){return x.id===currentProfileId});
+if(!p)return;
+p.name=document.getElementById('p-name').value;
+p.phone=document.getElementById('p-phone').value;
+p.age=document.getElementById('p-age').value;
+p.gender=document.getElementById('p-gender').value;
+saveProfiles();
+// পুরোনো profile-ও আপডেট করুন
+profile={name:p.name,phone:p.phone,age:p.age,gender:p.gender};
+save();
+document.getElementById('profile-status').textContent='✅ সংরক্ষিত';
+setTimeout(function(){document.getElementById('profile-status').textContent='';},2000);
+};
+
+// অ্যাপ চালু হলে প্রোফাইল লোড
+window.addEventListener('load',function(){
+setTimeout(function(){
+loadProfiles();
+renderProfileSwitcher();
+var p=getCurrentProfile();
+if(p){
+document.getElementById('p-name').value=p.name||'';
+document.getElementById('p-phone').value=p.phone||'';
+document.getElementById('p-age').value=p.age||'';
+document.getElementById('p-gender').value=p.gender||'';
+}
+},600);
+});
+</script>
 
 </body>
 </html>
