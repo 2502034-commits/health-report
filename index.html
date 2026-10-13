@@ -458,7 +458,7 @@ function renderRecords(){
 var list=document.getElementById('records-list');
 var q=(document.getElementById('search-box').value||'').toLowerCase();
 var ft=document.getElementById('filter-type').value;
-var filtered=records.filter(function(r){
+var filtered=getMyRecords().filter(function(r){
 if(ft&&r.type!==ft)return false;
 if(q){
 var m=r.type.toLowerCase().indexOf(q)!==-1||(r.note||'').toLowerCase().indexOf(q)!==-1||(r.place||'').toLowerCase().indexOf(q)!==-1;
@@ -573,11 +573,12 @@ alert('💊 ওষুধ যোগ হয়েছে');
 
 function renderMeds(){
 var list=document.getElementById('meds-list');
-if(meds.length===0){list.innerHTML='<div class="empty">কোনো ওষুধ নেই</div>';updateStats();return}
+var myMeds=getMyMeds();
+if(myMeds.length===0){list.innerHTML='<div class="empty">কোনো ওষুধ নেই</div>';updateStats();return}
 
 var today=new Date().toISOString().split('T')[0];
 var h='';
-meds.forEach(function(m){
+myMeds.forEach(function(m){
 var totalDoses=m.days*m.times.length;
 var taken=0,missed=0;
 for(var k in m.takenDays){
@@ -1130,8 +1131,9 @@ return units[type]||'';
 function renderHealthRecords(){
 var list=document.getElementById('health-records-list');
 if(!list)return;
-if(healthRecords.length===0){list.innerHTML='<div class="empty">কোনো রেকর্ড নেই</div>';return}
-var sorted=healthRecords.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
+var myHealth=getMyHealthRecords();
+if(myHealth.length===0){list.innerHTML='<div class="empty">কোনো রেকর্ড নেই</div>';return}
+var sorted=myHealth.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
 var h='';
 sorted.slice(0,30).forEach(function(r){
 var val=r.val2?r.val1+'/'+r.val2:r.val1;
@@ -1155,7 +1157,7 @@ function renderHealthChart(){
 var typeEl=document.getElementById('chart-type');
 if(!typeEl)return;
 var type=typeEl.value;
-var filtered=healthRecords.filter(function(r){return r.type===type}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'')});
+var filtered=getMyHealthRecords().filter(function(r){return r.type===type}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'')});
 var canvas=document.getElementById('healthChart');
 if(!canvas)return;
 if(healthChartInstance){healthChartInstance.destroy()}
@@ -1205,20 +1207,21 @@ function showMonthlyReport(){
 var now=new Date();
 var month=now.getMonth();
 var year=now.getFullYear();
-var filtered=healthRecords.filter(function(r){var d=new Date(r.date);return d.getMonth()===month&&d.getFullYear()===year});
+var filtered=getMyHealthRecords().filter(function(r){var d=new Date(r.date);return d.getMonth()===month&&d.getFullYear()===year});
 if(filtered.length===0){alert('এই মাসে কোনো রেকর্ড নেই');return}
 alert('📊 এই মাসে মোট '+filtered.length+'টি রেকর্ড আছে। PDF তৈরি করে বিস্তারিত দেখুন।');
 }
 
 function showYearlyReport(){
 var year=new Date().getFullYear();
-var filtered=healthRecords.filter(function(r){return new Date(r.date).getFullYear()===year});
+var filtered=getMyHealthRecords().filter(function(r){return new Date(r.date).getFullYear()===year});
 if(filtered.length===0){alert('এই বছরে কোনো রেকর্ড নেই');return}
 alert('📈 এই বছরে মোট '+filtered.length+'টি রেকর্ড আছে।');
 }
 
 function exportHealthPDF(){
-if(healthRecords.length===0){alert('আগে রেকর্ড যোগ করুন');return}
+var myHealthForPDF=getMyHealthRecords();
+if(myHealthForPDF.length===0){alert('আগে রেকর্ড যোগ করুন');return}
 var win=window.open('','_blank');
 var html='<html><head><meta charset="utf-8"><title>স্বাস্থ্য রিপোর্ট</title>';
 html+='<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap");';
@@ -1240,7 +1243,7 @@ html+='<p><b>তৈরির তারিখ:</b> '+new Date().toLocaleString('b
 html+='</div>';
 html+='<div class="notice">⚠️ এই ডকুমেন্ট রোগীর সম্মতিতে শেয়ার করা হয়েছে।</div>';
 ['bp','sugar','weight','heart','temp','oxy'].forEach(function(t){
-var filtered=healthRecords.filter(function(r){return r.type===t}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'')});
+var filtered=myHealthForPDF.filter(function(r){return r.type===t}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'')});
 if(filtered.length===0)return;
 html+='<h2 style="color:#2b6cb0;margin-top:20px">'+getHealthLabel(t)+' ('+getHealthUnit(t)+')</h2>';
 html+='<table><tr><th>তারিখ</th><th>মান</th><th>নোট</th></tr>';
@@ -1434,6 +1437,7 @@ window.addEventListener('load',function(){
 setTimeout(function(){
 loadProfiles();
 renderProfileSwitcher();
+setTimeout(migrateDataToProfiles,1000);
 var p=getCurrentProfile();
 if(p){
 document.getElementById('p-name').value=p.name||'';
@@ -1443,6 +1447,57 @@ document.getElementById('p-gender').value=p.gender||'';
 }
 },600);
 });
+// ===== প্রোফাইল অনুযায়ী ডেটা ফিল্টার =====
+
+// ডেটা মাইগ্রেশন — পুরোনো ডেটায় প্রোফাইল আইডি যোগ
+function migrateDataToProfiles(){
+if(!currentProfileId)return;
+
+var needsSave=false;
+records.forEach(function(r){
+if(!r.profileId){r.profileId=currentProfileId;needsSave=true}
+});
+if(needsSave)save();
+
+needsSave=false;
+meds.forEach(function(m){
+if(!m.profileId){m.profileId=currentProfileId;needsSave=true}
+});
+if(needsSave)save();
+
+needsSave=false;
+reminders.forEach(function(r){
+if(!r.profileId){r.profileId=currentProfileId;needsSave=true}
+});
+if(needsSave)save();
+
+needsSave=false;
+healthRecords.forEach(function(h){
+if(!h.profileId){h.profileId=currentProfileId;needsSave=true}
+});
+if(needsSave)saveHealth();
+}
+
+// ফিল্টার ফাংশন
+function getMyRecords(){
+if(!currentProfileId)return records;
+return records.filter(function(r){return r.profileId===currentProfileId});
+}
+
+function getMyMeds(){
+if(!currentProfileId)return meds;
+return meds.filter(function(m){return m.profileId===currentProfileId});
+}
+
+function getMyReminders(){
+if(!currentProfileId)return reminders;
+return reminders.filter(function(r){return r.profileId===currentProfileId});
+}
+
+function getMyHealthRecords(){
+if(!currentProfileId)return healthRecords;
+return healthRecords.filter(function(h){return h.profileId===currentProfileId});
+  }
 </script>
 
 </body>
