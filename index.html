@@ -96,6 +96,22 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDg57La_4CLWEgx2YxrHB-2ReI5HLYO6ns",
+    authDomain: "health-report-backup.firebaseapp.com",
+    projectId: "health-report-backup",
+    storageBucket: "health-report-backup.firebasestorage.app",
+    messagingSenderId: "691240985110",
+    appId: "1:691240985110:web:ad66e532123222f9360b37"
+  };
+  
+  // Firebase চালু করা হলো
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 </head>
 <body><!-- লক স্ক্রিন -->
 <div id="lock-screen" class="lock-screen">
@@ -298,6 +314,12 @@ if('serviceWorker' in navigator){
 </div>
 <button class="danger" onclick="removePin()" style="margin-top:10px">🚪 পিন সরিয়ে ফেলুন</button>
 </div>
+</div>
+<div class="card" style="margin-top:12px">
+<h2>☁️ ক্লাউড ব্যাকআপ (Firebase)</h2>
+<p style="font-size:13px;color:#718096;margin-bottom:12px">আপনার ডেটা গুগলের সার্ভারে সেভ রাখুন। নতুন ফোনে গেলেও ডেটা ফিরে পাবেন।</p>
+<button class="green" onclick="backupToCloud()" style="margin-bottom:8px">☁️ ক্লাউডে সেভ করুন</button>
+<button class="blue" onclick="restoreFromCloud()">🔄 ক্লাউড থেকে ফিরিয়ে আনুন</button>
 </div>
 <!-- স্বাস্থ্য ট্র্যাকিং ট্যাব -->
 <div id="tab-health" class="hidden">
@@ -1511,6 +1533,90 @@ function getMyHealthRecords(){
 if(!currentProfileId)return healthRecords;
 return healthRecords.filter(function(h){return h.profileId===currentProfileId});
   }
+// ===== ক্লাউড ব্যাকআপ (Firebase Sync) =====
+async function backupToCloud() {
+  if(!currentProfileId){
+    alert('প্রথমে একটি প্রোফাইল নির্বাচন করুন');
+    return;
+  }
+  
+  try {
+    var cp = getCurrentProfile();
+    if(!cp) return;
+
+    // বর্তমান প্রোফাইলের ডেটাগুলো সংগ্রহ করা
+    var dataToSave = {
+      profile: cp,
+      records: getMyRecords(),
+      meds: getMyMeds(),
+      reminders: getMyReminders(),
+      healthRecords: getMyHealthRecords(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // ক্লাউডে সেভ করা (ডকুমেন্ট আইডি হিসেবে প্রোফাইল আইডি ব্যবহার হচ্ছে)
+    await db.collection("users").doc(String(currentProfileId)).set(dataToSave, { merge: true });
+    
+    alert('✅ ডেটা সফলভাবে ক্লাউডে সেভ হয়েছে!');
+  } catch (error) {
+    console.error("Error saving to cloud:", error);
+    alert('❌ ক্লাউডে সেভ করতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।');
+  }
+}
+
+async function restoreFromCloud() {
+  if(!currentProfileId){
+    alert('প্রথমে একটি প্রোফাইল নির্বাচন করুন');
+    return;
+  }
+  
+  if(!confirm('আপনি কি ক্লাউড থেকে ডেটা ফিরিয়ে আনতে চান? আপনার বর্তমান ডেটা মুছে যাবে!')) return;
+
+  try {
+    var doc = await db.collection("users").doc(String(currentProfileId)).get();
+    
+    if (doc.exists) {
+      var data = doc.data();
+      
+      // ক্লাউড থেকে ডেটা ফিরিয়ে আনা
+      if(data.records) {
+        records = records.filter(r => r.profileId !== currentProfileId);
+        records = records.concat(data.records);
+      }
+      if(data.meds) {
+        meds = meds.filter(m => m.profileId !== currentProfileId);
+        meds = meds.concat(data.meds);
+      }
+      if(data.reminders) {
+        reminders = reminders.filter(r => r.profileId !== currentProfileId);
+        reminders = reminders.concat(data.reminders);
+      }
+      if(data.healthRecords) {
+        healthRecords = healthRecords.filter(h => h.profileId !== currentProfileId);
+        healthRecords = healthRecords.concat(data.healthRecords);
+      }
+
+      // লোকাল স্টোরেজে সেভ করা
+      save();
+      saveHealth();
+      
+      alert('✅ ক্লাউড থেকে ডেটা ফিরিয়ে আনা হয়েছে!');
+      
+      // UI আপডেট করা
+      renderRecords();
+      renderMeds();
+      renderReminders();
+      renderHealthRecords();
+      renderHealthChart();
+      
+    } else {
+      alert('এই প্রোফাইলের জন্য ক্লাউডে কোনো ডেটা পাওয়া যায়নি।');
+    }
+  } catch (error) {
+    console.error("Error restoring from cloud:", error);
+    alert('❌ ডেটা ফিরিয়ে আনতে সমস্যা হয়েছে।');
+  }
+}
 </script>
 
 </body>
