@@ -4,6 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>আমার স্বাস্থ্য রিপোর্ট</title>
+<link rel="manifest" href="manifest.json">
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js');
+  });
+}
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDg57La_4CLWEgx2YxrHB-2ReI5HLYO6ns",
+    authDomain: "health-report-backup.firebaseapp.com",
+    projectId: "health-report-backup",
+    storageBucket: "health-report-backup.firebasestorage.app",
+    messagingSenderId: "691240985110",
+    appId: "1:691240985110:web:ad66e532123222f9360b37"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1a202c;padding-bottom:80px}
@@ -22,7 +44,7 @@ button.green{background:#38a169}
 button.blue{background:#4285f4}
 button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 .tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #e2e8f0;max-width:600px;margin:0 auto;z-index:100}
-.tabbar button{flex:1;background:#fff;color:#4a5568;border-radius:0;padding:12px 2px;font-size:11px;margin:0}
+.tabbar button{flex:1;background:#fff;color:#4a5568;border-radius:0;padding:10px 2px;font-size:10px;margin:0}
 .tabbar button.active{color:#2b6cb0;border-top:3px solid #2b6cb0}
 .rec{background:#f7fafc;border-left:4px solid #2b6cb0;padding:10px 12px;border-radius:6px;margin-bottom:8px}
 .rec b{color:#2b6cb0}
@@ -42,8 +64,6 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
 .modal.show{display:flex}
 .modal img{max-width:100%;max-height:90vh;border-radius:8px}
-
-/* ===== ওষুধের নতুন স্টাইল ===== */
 .med-card{background:#fff;border-left:4px solid #38b2ac;border-radius:8px;padding:12px;margin-bottom:10px}
 .med-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .med-name{font-weight:bold;color:#2b6cb0;font-size:15px}
@@ -67,7 +87,6 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 .stat-item{flex:1;background:#ebf8ff;padding:8px;border-radius:8px;text-align:center}
 .stat-item .num{font-size:18px;font-weight:bold;color:#2b6cb0}
 .stat-item .label{font-size:11px;color:#718096}
-/* ===== লক স্ক্রিন ===== */
 .lock-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#2b6cb0,#1a365d);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
 .lock-box{background:#fff;border-radius:20px;padding:30px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .lock-icon{font-size:48px;margin-bottom:8px}
@@ -86,35 +105,12 @@ button.small{width:auto;padding:6px 12px;font-size:13px;margin:2px}
 .link-btn{background:none;border:none;color:#2b6cb0;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:10px;width:auto;padding:4px}
 .pin-setup-box{background:#f7fafc;padding:12px;border-radius:8px;margin:10px 0;border:1px solid #e2e8f0}
 .pin-setup-box input{text-align:center;font-size:20px;letter-spacing:8px;font-weight:bold}
-/* ===== লক স্ক্রিন শেষ ===== */</style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link rel="manifest" href="manifest.json">
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js');
-  });
-}
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDg57La_4CLWEgx2YxrHB-2ReI5HLYO6ns",
-    authDomain: "health-report-backup.firebaseapp.com",
-    projectId: "health-report-backup",
-    storageBucket: "health-report-backup.firebasestorage.app",
-    messagingSenderId: "691240985110",
-    appId: "1:691240985110:web:ad66e532123222f9360b37"
-  };
-  
-  // Firebase চালু করা হলো
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
+</style>
 </head>
-<body><!-- লক স্ক্রিন -->
-<div id="lock-screen" class="lock-screen">
+<body>
+
+<!-- লক স্ক্রিন -->
+<div id="lock-screen" class="lock-screen" style="display:none">
 <div class="lock-box">
 <div class="lock-icon">🔒</div>
 <h2>স্বাস্থ্য রিপোর্ট</h2>
@@ -146,11 +142,12 @@ if('serviceWorker' in navigator){
 
 <header>
 <h1>🩺 আমার স্বাস্থ্য রিপোর্ট</h1>
-<p>সংস্করণ ৩ — সম্পূর্ণ ওষুধ ট্র্যাকার</p>
+<p>সংস্করণ ৪ — ডাক্তার ও ক্লাউড</p>
 </header>
 
 <div class="container">
 <div class="notice">⚠️ এই অ্যাপ রোগনির্ণয়ের বিকল্প নয়।</div>
+
 <!-- প্রোফাইল ট্যাব -->
 <div id="tab-profile">
 <div class="card">
@@ -244,18 +241,9 @@ if('serviceWorker' in navigator){
 <div class="card">
 <h2>📊 সামগ্রিক হিসাব</h2>
 <div class="stat-box">
-<div class="stat-item">
-<div class="num" id="stat-total">0</div>
-<div class="label">মোট ওষুধ</div>
-</div>
-<div class="stat-item">
-<div class="num" id="stat-active">0</div>
-<div class="label">চলমান</div>
-</div>
-<div class="stat-item">
-<div class="num" id="stat-done">0</div>
-<div class="label">সম্পন্ন</div>
-</div>
+<div class="stat-item"><div class="num" id="stat-total">0</div><div class="label">মোট ওষুধ</div></div>
+<div class="stat-item"><div class="num" id="stat-active">0</div><div class="label">চলমান</div></div>
+<div class="stat-item"><div class="num" id="stat-done">0</div><div class="label">সম্পন্ন</div></div>
 </div>
 </div>
 
@@ -280,7 +268,7 @@ if('serviceWorker' in navigator){
 </div>
 </div>
 
-</div><!-- সেটিংস ট্যাব -->
+<!-- সেটিংস ট্যাব -->
 <div id="tab-settings" class="hidden">
 <div class="card">
 <h2>🔐 সুরক্ষা সেটিংস</h2>
@@ -313,7 +301,7 @@ if('serviceWorker' in navigator){
 <p style="font-size:12px;color:#718096;margin-top:6px">এই সময় কোনো কাজ না করলে অ্যাপ নিজে থেকে লক হবে।</p>
 </div>
 <button class="danger" onclick="removePin()" style="margin-top:10px">🚪 পিন সরিয়ে ফেলুন</button>
-</div>
+
 <div class="card" style="margin-top:12px">
 <h2>☁️ ক্লাউড ব্যাকআপ (Firebase)</h2>
 <p style="font-size:13px;color:#718096;margin-bottom:12px">আপনার ডেটা গুগলের সার্ভারে সেভ রাখুন। নতুন ফোনে গেলেও ডেটা ফিরে পাবেন।</p>
@@ -321,7 +309,8 @@ if('serviceWorker' in navigator){
 <button class="blue" onclick="restoreFromCloud()">🔄 ক্লাউড থেকে ফিরিয়ে আনুন</button>
 </div>
 </div>
-</div> 
+</div>
+
 <!-- স্বাস্থ্য ট্র্যাকিং ট্যাব -->
 <div id="tab-health" class="hidden">
 <div class="card">
@@ -340,12 +329,10 @@ if('serviceWorker' in navigator){
 <input id="health-note" placeholder="নোট (ঐচ্ছিক)">
 <button onclick="addHealthRecord()">📊 রেকর্ড যোগ করুন</button>
 </div>
-
 <div class="card">
 <h2>🎯 লক্ষ্য নির্ধারণ</h2>
 <div id="health-goals"></div>
 </div>
-
 <div class="card">
 <h2>📉 গ্রাফে পরিবর্তন</h2>
 <select id="chart-type" onchange="renderHealthChart()" style="margin-bottom:10px">
@@ -358,36 +345,16 @@ if('serviceWorker' in navigator){
 </select>
 <canvas id="healthChart" style="max-height:300px"></canvas>
 </div>
-
 <div class="card">
 <h2>📄 রিপোর্ট শেয়ার</h2>
 <button class="blue" onclick="showMonthlyReport()">📊 মাসিক রিপোর্ট</button>
 <button class="blue" onclick="showYearlyReport()">📈 বাৎসরিক রিপোর্ট</button>
 <button class="green" onclick="exportHealthPDF()">📄 PDF শেয়ার</button>
 </div>
-
 <h2 style="margin:12px 4px">📋 আমার স্বাস্থ্য রেকর্ড</h2>
 <div id="health-records-list"></div>
-<!-- জরুরি ও ডাক্তার ট্যাব -->
-<div id="tab-contacts" class="hidden">
-<div class="card">
-<h2>🚑 জরুরি সেবা</h2>
-<div class="rec">
-<b>অ্যাম্বুলেন্স ও ফায়ার সার্ভিস</b><br>
-<a href="tel:999" style="font-size:18px;color:#e53e3e;text-decoration:none">📞 ৯৯৯ (জাতীয় জরুরি)</a>
 </div>
-<div class="rec">
-<b>স্বাস্থ্য বাতায়ন</b><br>
-<a href="tel:16263" style="font-size:18px;color:#2b6cb0;text-decoration:none">📞 ১৬২৬৩</a>
-</div>
-</div>
-<div class="card">
-<h2>👨‍⚕️ আমার ডাক্তার</h2>
-<div id="doctor-list"></div>
-<button class="green" onclick="showAddDoctor()" style="margin-top:10px">+ নতুন ডাক্তার যোগ করুন</button>
-</div>
-</div>
-</div>
+
 <!-- পরিবার ট্যাব -->
 <div id="tab-family" class="hidden">
 <div class="card">
@@ -401,6 +368,29 @@ if('serviceWorker' in navigator){
 <div id="family-stats"></div>
 </div>
 </div>
+
+<!-- জরুরি ও ডাক্তার ট্যাব -->
+<div id="tab-contacts" class="hidden">
+  <div class="card">
+    <h2>🚑 জরুরি সেবা</h2>
+    <div class="rec">
+      <b>অ্যাম্বুলেন্স ও ফায়ার সার্ভিস</b><br>
+      <a href="tel:999" style="font-size:18px;color:#e53e3e;text-decoration:none">📞 ৯৯৯ (জাতীয় জরুরি)</a>
+    </div>
+    <div class="rec">
+      <b>স্বাস্থ্য বাতায়ন</b><br>
+      <a href="tel:16263" style="font-size:18px;color:#2b6cb0;text-decoration:none">📞 ১৬২৬৩</a>
+    </div>
+  </div>
+  <div class="card">
+    <h2>👨‍⚕️ আমার ডাক্তার</h2>
+    <div id="doctor-list"></div>
+    <button class="green" onclick="showAddDoctor()" style="margin-top:10px">+ নতুন ডাক্তার যোগ করুন</button>
+  </div>
+</div>
+
+</div> <!-- container end -->
+
 <div class="tabbar">
 <button id="btn-profile" onclick="tab('profile')" class="active">প্রোফাইল</button>
 <button id="btn-records" onclick="tab('records')">রেকর্ড</button>
@@ -415,9 +405,11 @@ if('serviceWorker' in navigator){
 
 <div id="imageModal" class="modal" onclick="this.classList.remove('show')">
 <img id="modalImg" src="">
-</div><script src="https://accounts.google.com/gsi/client" async defer></script>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-var CLIENT_ID = '826858578843-2a839kseq0qhelm13l5j0ji567mvkr46.apps.googleusercontent.com';
+var CLIENT_ID = '826858578843-2a839kseq0qhelm1315j0ji567mvkr46.apps.googleusercontent.com';
 var SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 var tokenClient = null;
 
@@ -455,15 +447,22 @@ if(t==='contacts'){renderDoctors();}
 }
 
 function saveProfile(){
-profile={
-name:document.getElementById('p-name').value,
-phone:document.getElementById('p-phone').value,
-age:document.getElementById('p-age').value,
-gender:document.getElementById('p-gender').value
-};
+if(!currentProfileId){
+alert('প্রথমে একটা প্রোফাইল সিলেক্ট করুন বা নতুন সদস্য যোগ করুন');
+tab('family');
+return;
+}
+var p=profiles.find(function(x){return x.id===currentProfileId});
+if(!p)return;
+p.name=document.getElementById('p-name').value;
+p.phone=document.getElementById('p-phone').value;
+p.age=document.getElementById('p-age').value;
+p.gender=document.getElementById('p-gender').value;
+saveProfiles();
+profile={name:p.name,phone:p.phone,age:p.age,gender:p.gender};
 save();
 document.getElementById('profile-status').textContent='✅ সংরক্ষিত';
-setTimeout(function(){document.getElementById('profile-status').textContent=''},2000);
+setTimeout(function(){document.getElementById('profile-status').textContent='';},2000);
 }
 
 document.getElementById('r-file').addEventListener('change',function(e){
@@ -488,7 +487,7 @@ var note=document.getElementById('r-note').value;
 var fi=document.getElementById('r-file');
 if(!date){alert('তারিখ দিন');return}
 function finish(fd,ft,fn){
-records.push({id:Date.now(),type:type,date:date,place:place,note:note,fileData:fd||null,fileType:ft||null,fileName:fn||null});
+records.push({id:Date.now(),type:type,date:date,place:place,note:note,fileData:fd||null,fileType:ft||null,fileName:fn||null,profileId:currentProfileId});
 save();renderRecords();
 document.getElementById('r-date').value='';
 document.getElementById('r-place').value='';
@@ -537,11 +536,13 @@ list.innerHTML=h;
 }
 
 function showImg(src){document.getElementById('modalImg').src=src;document.getElementById('imageModal').classList.add('show')}
-function delRecord(id){if(!confirm('মুছবেন?'))return;records=records.filter(function(r){return r.id!==id});save();renderRecords()}function addReminder(){
+function delRecord(id){if(!confirm('মুছবেন?'))return;records=records.filter(function(r){return r.id!==id});save();renderRecords()}
+
+function addReminder(){
 var t=document.getElementById('rem-title').value;
 var d=document.getElementById('rem-date').value;
 if(!t||!d){alert('সব দিন');return}
-reminders.push({id:Date.now(),title:t,date:d});
+reminders.push({id:Date.now(),title:t,date:d,profileId:currentProfileId});
 save();renderReminders();
 document.getElementById('rem-title').value='';
 document.getElementById('rem-date').value='';
@@ -550,9 +551,10 @@ alert('⏰ যোগ হয়েছে');
 
 function renderReminders(){
 var list=document.getElementById('reminders-list');
-if(reminders.length===0){list.innerHTML='<div class="empty">কোনো অনুস্মারক নেই</div>';return}
+var myReminders=getMyReminders();
+if(myReminders.length===0){list.innerHTML='<div class="empty">কোনো অনুস্মারক নেই</div>';return}
 var h='';
-reminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){
+myReminders.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(r){
 h+='<div class="rec"><b>'+r.title+'</b>';
 h+='<div class="date">🕒 '+new Date(r.date).toLocaleString('bn-BD')+'</div>';
 h+='<div class="row">';
@@ -565,7 +567,6 @@ list.innerHTML=h;
 
 function delRem(id){if(!confirm('মুছবেন?'))return;reminders=reminders.filter(function(r){return r.id!==id});save();renderReminders()}
 
-// ===== ওষুধের নতুন ফাংশন =====
 function addTimeInput(){
 var container=document.getElementById('time-inputs');
 var div=document.createElement('div');
@@ -579,7 +580,6 @@ var name=document.getElementById('med-name').value.trim();
 var dose=document.getElementById('med-dose').value.trim();
 var days=parseInt(document.getElementById('med-days').value)||7;
 
-// সময়গুলো সংগ্রহ করুন
 var times=[];
 var container=document.getElementById('time-inputs');
 var allInputs=container.querySelectorAll('input[type="time"]');
@@ -609,7 +609,8 @@ times:times,
 days:days,
 startDate:startDate,
 takenDays:takenDays,
-missedDays:missedDays
+missedDays:missedDays,
+profileId:currentProfileId
 });
 
 save();
@@ -743,7 +744,6 @@ meds=meds.filter(function(m){return m.id!==id});
 save();renderMeds();
 }
 
-// ===== Google Calendar =====
 function initGoogle(){
 if(typeof google==='undefined'){setTimeout(initGoogle,500);return}
 tokenClient=google.accounts.oauth2.initTokenClient({
@@ -807,7 +807,7 @@ if(data.error){alert('সমস্যা: '+data.error.message)}
 else{alert('✅ Google Calendar-এ যোগ হয়েছে!'+((ev.recurring)?'\n'+ev.days+' দিনের জন্য প্রতিদিন ইভেন্ট তৈরি হয়েছে।':''))}
 }).catch(function(){alert('নেটওয়ার্ক সমস্যা')});
 }
-// ===== PDF ও শেয়ার =====
+
 function renderShareList(){
 var list=document.getElementById('share-list');
 var myShareRecords=getMyRecords();
@@ -845,12 +845,12 @@ var ids=[];
 document.querySelectorAll('.share-check:checked').forEach(function(c){ids.push(Number(c.value))});
 var myRecords=getMyRecords();
 return myRecords.filter(function(r){return ids.indexOf(r.id)!==-1});
-  }
+}
 
 function buildShareText(){
 var sel=getSelectedRecords();
-var txt='🩺 স্বাস্থ্য রিপোর্ট\n';
 var _cp=getCurrentProfile()||{};
+var txt='🩺 স্বাস্থ্য রিপোর্ট\n';
 txt+='━━━━━━━━━━━━━━━\n';
 txt+='রোগী: '+(_cp.name||'—')+'\n';
 txt+='বয়স: '+(_cp.age||'—')+'\n';
@@ -918,8 +918,8 @@ html+='.footer{text-align:center;color:#a0aec0;font-size:11px;margin-top:20px}';
 html+='@media print{.noprint{display:none}body{padding:10px}}';
 html+='</style></head><body>';
 html+='<h1>🩺 স্বাস্থ্য রিপোর্ট</h1>';
-html+='<div class="header-info">';
 var _cp=getCurrentProfile()||{};
+html+='<div class="header-info">';
 html+='<p><b>রোগীর নাম:</b> '+(_cp.name||'—')+'</p>';
 html+='<p><b>বয়স:</b> '+(_cp.age||'—')+' | <b>লিঙ্গ:</b> '+(_cp.gender||'—')+'</p>';
 html+='<p><b>ফোন:</b> '+(_cp.phone||'—')+'</p>';
@@ -942,18 +942,6 @@ win.document.write(html);
 win.document.close();
 }
 
-// ===== শুরু =====
-window.addEventListener('load',function(){
-setTimeout(initGoogle,1000);
-document.getElementById('p-name').value=profile.name||'';
-document.getElementById('p-phone').value=profile.phone||'';
-document.getElementById('p-age').value=profile.age||'';
-document.getElementById('p-gender').value=profile.gender||'';
-renderRecords();
-renderReminders();
-renderMeds();
-});
-// ===== পাসওয়ার্ড ও সুরক্ষা =====
 var pinBuffer='';
 var savedPin=localStorage.getItem('appPin')||'';
 var autoLockTime=parseInt(localStorage.getItem('autoLock')||'5');
@@ -1102,24 +1090,11 @@ resetLockTimer();
 document.addEventListener(evt,resetLockTimer);
 });
 
-window.addEventListener('load',function(){
-setTimeout(function(){
-checkLock();
-updatePinStatus();
-var sel=document.getElementById('auto-lock');
-if(sel)sel.value=autoLockTime;
-},500);
-});// ===== স্বাস্থ্য ট্র্যাকিং =====
+// স্বাস্থ্য ট্র্যাকিং
 var healthRecords=[];
-try{
-healthRecords=JSON.parse(localStorage.getItem('healthRecords')||'[]');
-}catch(e){healthRecords=[]}
-
+try{healthRecords=JSON.parse(localStorage.getItem('healthRecords')||'[]')}catch(e){healthRecords=[]}
 var healthGoals={};
-try{
-healthGoals=JSON.parse(localStorage.getItem('healthGoals')||'{}');
-}catch(e){healthGoals={}}
-
+try{healthGoals=JSON.parse(localStorage.getItem('healthGoals')||'{}')}catch(e){healthGoals={}}
 var healthChartInstance=null;
 
 function saveHealth(){
@@ -1163,7 +1138,8 @@ type:type,
 val1:parseFloat(v1),
 val2:v2?parseFloat(v2):null,
 date:date,
-note:note
+note:note,
+profileId:currentProfileId
 });
 saveHealth();
 renderHealthRecords();
@@ -1292,8 +1268,8 @@ html+='.notice{background:#fefcbf;padding:12px;border-left:4px solid #d69e2e;fon
 html+='@media print{.noprint{display:none}}';
 html+='</style></head><body>';
 html+='<h1>📊 স্বাস্থ্য ট্র্যাকিং রিপোর্ট</h1>';
-html+='<div class="header-info">';
 var _cp=getCurrentProfile()||{};
+html+='<div class="header-info">';
 html+='<p><b>রোগীর নাম:</b> '+(_cp.name||'—')+'</p>';
 html+='<p><b>বয়স:</b> '+(_cp.age||'—')+' | <b>ফোন:</b> '+(_cp.phone||'—')+'</p>';
 html+='<p><b>তৈরির তারিখ:</b> '+new Date().toLocaleString('bn-BD')+'</p>';
@@ -1316,16 +1292,7 @@ win.document.write(html);
 win.document.close();
 }
 
-var _origTab=tab;
-tab=function(t){
-_origTab(t);
-if(t==='health'){
-updateHealthFields();
-renderHealthRecords();
-renderHealthChart();
-loadGoals();
-}
-};// ===== পরিবার সিস্টেম =====
+// পরিবার সিস্টেম
 var profiles=[];
 var currentProfileId=null;
 
@@ -1335,7 +1302,6 @@ profiles=JSON.parse(localStorage.getItem('profiles')||'[]');
 currentProfileId=parseInt(localStorage.getItem('currentProfileId')||'0')||null;
 }catch(e){profiles=[];currentProfileId=null}
 
-// মাইগ্রেশন: পুরোনো profile থাকলে নতুন স্ট্রাকচারে নিন
 if(profiles.length===0){
 var oldProfile={};
 try{oldProfile=JSON.parse(localStorage.getItem('profile')||'{}')}catch(e){}
@@ -1404,7 +1370,7 @@ document.getElementById('p-name').value=name.trim();
 document.getElementById('p-phone').value='';
 document.getElementById('p-age').value='';
 document.getElementById('p-gender').value='';
-alert('✅ '+name+' যোগ হয়েছে! এখন প্রোফাইল তথ্য পূরণ করুন।');
+alert('✅ '+name+' যোগ হয়েছে!');
 tab('profile');
 }
 
@@ -1467,46 +1433,7 @@ renderFamily();
 alert('✅ '+p.name+' মুছে ফেলা হয়েছে');
 }
 
-// saveProfile ফাংশন আপডেট
-var _origSaveProfile=saveProfile;
-saveProfile=function(){
-if(!currentProfileId){
-alert('প্রথমে একটা প্রোফাইল সিলেক্ট করুন বা নতুন সদস্য যোগ করুন');
-tab('family');
-return;
-}
-var p=profiles.find(function(x){return x.id===currentProfileId});
-if(!p)return;
-p.name=document.getElementById('p-name').value;
-p.phone=document.getElementById('p-phone').value;
-p.age=document.getElementById('p-age').value;
-p.gender=document.getElementById('p-gender').value;
-saveProfiles();
-// পুরোনো profile-ও আপডেট করুন
-profile={name:p.name,phone:p.phone,age:p.age,gender:p.gender};
-save();
-document.getElementById('profile-status').textContent='✅ সংরক্ষিত';
-setTimeout(function(){document.getElementById('profile-status').textContent='';},2000);
-};
-
-// অ্যাপ চালু হলে প্রোফাইল লোড
-window.addEventListener('load',function(){
-setTimeout(function(){
-loadProfiles();
-renderProfileSwitcher();
-setTimeout(migrateDataToProfiles,1000);
-var p=getCurrentProfile();
-if(p){
-document.getElementById('p-name').value=p.name||'';
-document.getElementById('p-phone').value=p.phone||'';
-document.getElementById('p-age').value=p.age||'';
-document.getElementById('p-gender').value=p.gender||'';
-}
-},600);
-});
-// ===== প্রোফাইল অনুযায়ী ডেটা ফিল্টার =====
-
-// ডেটা মাইগ্রেশন — পুরোনো ডেটায় প্রোফাইল আইডি যোগ
+// ডেটা ফিল্টার
 function migrateDataToProfiles(){
 if(!currentProfileId)return;
 
@@ -1535,7 +1462,6 @@ if(!h.profileId){h.profileId=currentProfileId;needsSave=true}
 if(needsSave)saveHealth();
 }
 
-// ফিল্টার ফাংশন
 function getMyRecords(){
 if(!currentProfileId)return records;
 return records.filter(function(r){return r.profileId===currentProfileId});
@@ -1554,92 +1480,9 @@ return reminders.filter(function(r){return r.profileId===currentProfileId});
 function getMyHealthRecords(){
 if(!currentProfileId)return healthRecords;
 return healthRecords.filter(function(h){return h.profileId===currentProfileId});
-  }
-// ===== ক্লাউড ব্যাকআপ (Firebase Sync) =====
-async function backupToCloud() {
-  if(!currentProfileId){
-    alert('প্রথমে একটি প্রোফাইল নির্বাচন করুন');
-    return;
-  }
-  
-  try {
-    var cp = getCurrentProfile();
-    if(!cp) return;
-
-    // বর্তমান প্রোফাইলের ডেটাগুলো সংগ্রহ করা
-    var dataToSave = {
-      profile: cp,
-      records: getMyRecords(),
-      meds: getMyMeds(),
-      reminders: getMyReminders(),
-      healthRecords: getMyHealthRecords(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // ক্লাউডে সেভ করা (ডকুমেন্ট আইডি হিসেবে প্রোফাইল আইডি ব্যবহার হচ্ছে)
-    await db.collection("users").doc(String(currentProfileId)).set(dataToSave, { merge: true });
-    
-    alert('✅ ডেটা সফলভাবে ক্লাউডে সেভ হয়েছে!');
-  } catch (error) {
-    console.error("Error saving to cloud:", error);
-    alert('❌ ক্লাউডে সেভ করতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।');
-  }
 }
 
-async function restoreFromCloud() {
-  if(!currentProfileId){
-    alert('প্রথমে একটি প্রোফাইল নির্বাচন করুন');
-    return;
-  }
-  
-  if(!confirm('আপনি কি ক্লাউড থেকে ডেটা ফিরিয়ে আনতে চান? আপনার বর্তমান ডেটা মুছে যাবে!')) return;
-
-  try {
-    var doc = await db.collection("users").doc(String(currentProfileId)).get();
-    
-    if (doc.exists) {
-      var data = doc.data();
-      
-      // ক্লাউড থেকে ডেটা ফিরিয়ে আনা
-      if(data.records) {
-        records = records.filter(r => r.profileId !== currentProfileId);
-        records = records.concat(data.records);
-      }
-      if(data.meds) {
-        meds = meds.filter(m => m.profileId !== currentProfileId);
-        meds = meds.concat(data.meds);
-      }
-      if(data.reminders) {
-        reminders = reminders.filter(r => r.profileId !== currentProfileId);
-        reminders = reminders.concat(data.reminders);
-      }
-      if(data.healthRecords) {
-        healthRecords = healthRecords.filter(h => h.profileId !== currentProfileId);
-        healthRecords = healthRecords.concat(data.healthRecords);
-      }
-
-      // লোকাল স্টোরেজে সেভ করা
-      save();
-      saveHealth();
-      
-      alert('✅ ক্লাউড থেকে ডেটা ফিরিয়ে আনা হয়েছে!');
-      
-      // UI আপডেট করা
-      renderRecords();
-      renderMeds();
-      renderReminders();
-      renderHealthRecords();
-      renderHealthChart();
-      
-    } else {
-      alert('এই প্রোফাইলের জন্য ক্লাউডে কোনো ডেটা পাওয়া যায়নি।');
-    }
-  } catch (error) {
-    console.error("Error restoring from cloud:", error);
-    alert('❌ ডেটা ফিরিয়ে আনতে সমস্যা হয়েছে।');
-  }
-}
-// ===== ডাক্তার ও জরুরি নাম্বার =====
+// ডাক্তার ও জরুরি নাম্বার
 var doctors=[];
 try{doctors=JSON.parse(localStorage.getItem('doctors')||'[]')}catch(e){}
 
@@ -1676,6 +1519,112 @@ if(!confirm('মুছবেন?'))return;
 doctors=doctors.filter(function(d){return d.id!==id});
 saveDoctors();renderDoctors();
 }
+
+// ক্লাউড ব্যাকআপ
+async function backupToCloud() {
+  if(!currentProfileId){
+    alert('প্রথমে একটি প্রোফাইল নির্বাচন করুন');
+    return;
+  }
+  
+  try {
+    var cp = getCurrentProfile();
+    if(!cp) return;
+
+    var dataToSave = {
+      profile: cp,
+      records: getMyRecords(),
+      meds: getMyMeds(),
+      reminders: getMyReminders(),
+      healthRecords: getMyHealthRecords(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await db.collection("users").doc(String(currentProfileId)).set(dataToSave, { merge: true });
+    
+    alert('✅ ডেটা সফলভাবে ক্লাউডে সেভ হয়েছে!');
+  } catch (error) {
+    console.error("Error saving to cloud:", error);
+    alert('❌ ক্লাউডে সেভ করতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।');
+  }
+}
+
+async function restoreFromCloud() {
+  if(!currentProfileId){
+    alert('প্রথমে একটি প্রোফাইল নির্বাচন করুন');
+    return;
+  }
+  
+  if(!confirm('আপনি কি ক্লাউড থেকে ডেটা ফিরিয়ে আনতে চান? আপনার বর্তমান ডেটা মুছে যাবে!')) return;
+
+  try {
+    var doc = await db.collection("users").doc(String(currentProfileId)).get();
+    
+    if (doc.exists) {
+      var data = doc.data();
+      
+      if(data.records) {
+        records = records.filter(r => r.profileId !== currentProfileId);
+        records = records.concat(data.records);
+      }
+      if(data.meds) {
+        meds = meds.filter(m => m.profileId !== currentProfileId);
+        meds = meds.concat(data.meds);
+      }
+      if(data.reminders) {
+        reminders = reminders.filter(r => r.profileId !== currentProfileId);
+        reminders = reminders.concat(data.reminders);
+      }
+      if(data.healthRecords) {
+        healthRecords = healthRecords.filter(h => h.profileId !== currentProfileId);
+        healthRecords = healthRecords.concat(data.healthRecords);
+      }
+
+      save();
+      saveHealth();
+      
+      alert('✅ ক্লাউড থেকে ডেটা ফিরিয়ে আনা হয়েছে!');
+      
+      renderRecords();
+      renderMeds();
+      renderReminders();
+      renderHealthRecords();
+      renderHealthChart();
+      
+    } else {
+      alert('এই প্রোফাইলের জন্য ক্লাউডে কোনো ডেটা পাওয়া যায়নি।');
+    }
+  } catch (error) {
+    console.error("Error restoring from cloud:", error);
+    alert('❌ ডেটা ফিরিয়ে আনতে সমস্যা হয়েছে।');
+  }
+}
+
+// শুরু
+window.addEventListener('load',function(){
+setTimeout(function(){
+checkLock();
+updatePinStatus();
+var sel=document.getElementById('auto-lock');
+if(sel)sel.value=autoLockTime;
+
+loadProfiles();
+renderProfileSwitcher();
+setTimeout(migrateDataToProfiles,1000);
+var p=getCurrentProfile();
+if(p){
+document.getElementById('p-name').value=p.name||'';
+document.getElementById('p-phone').value=p.phone||'';
+document.getElementById('p-age').value=p.age||'';
+document.getElementById('p-gender').value=p.gender||'';
+}
+renderRecords();
+renderReminders();
+renderMeds();
+renderDoctors();
+},500);
+setTimeout(initGoogle,1000);
+});
 </script>
 
 </body>
