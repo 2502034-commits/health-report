@@ -367,6 +367,25 @@ if('serviceWorker' in navigator){
 
 <h2 style="margin:12px 4px">📋 আমার স্বাস্থ্য রেকর্ড</h2>
 <div id="health-records-list"></div>
+<!-- জরুরি ও ডাক্তার ট্যাব -->
+<div id="tab-contacts" class="hidden">
+<div class="card">
+<h2>🚑 জরুরি সেবা</h2>
+<div class="rec">
+<b>অ্যাম্বুলেন্স ও ফায়ার সার্ভিস</b><br>
+<a href="tel:999" style="font-size:18px;color:#e53e3e;text-decoration:none">📞 ৯৯৯ (জাতীয় জরুরি)</a>
+</div>
+<div class="rec">
+<b>স্বাস্থ্য বাতায়ন</b><br>
+<a href="tel:16263" style="font-size:18px;color:#2b6cb0;text-decoration:none">📞 ১৬২৬৩</a>
+</div>
+</div>
+<div class="card">
+<h2>👨‍⚕️ আমার ডাক্তার</h2>
+<div id="doctor-list"></div>
+<button class="green" onclick="showAddDoctor()" style="margin-top:10px">+ নতুন ডাক্তার যোগ করুন</button>
+</div>
+</div>
 </div>
 <!-- পরিবার ট্যাব -->
 <div id="tab-family" class="hidden">
@@ -390,6 +409,7 @@ if('serviceWorker' in navigator){
 <button id="btn-settings" onclick="tab('settings')">সেটিংস</button>
 <button id="btn-health" onclick="tab('health')">স্বাস্থ্য</button>
 <button id="btn-family" onclick="tab('family')">পরিবার</button>
+<button id="btn-contacts" onclick="tab('contacts')">জরুরি</button>
 </div>
 
 <div id="imageModal" class="modal" onclick="this.classList.remove('show')">
@@ -416,7 +436,7 @@ localStorage.setItem('meds',JSON.stringify(meds));
 }
 
 function tab(t){
-['profile','records','reminders','meds','share','settings','health','family'].forEach(function(x){
+['profile','records','reminders','meds','share','settings','health','family','contacts'].forEach(function(x){
 document.getElementById('tab-'+x).classList.add('hidden');
 var b=document.getElementById('btn-'+x);
 if(b)b.classList.remove('active');
@@ -1616,6 +1636,43 @@ async function restoreFromCloud() {
     console.error("Error restoring from cloud:", error);
     alert('❌ ডেটা ফিরিয়ে আনতে সমস্যা হয়েছে।');
   }
+}
+// ===== ডাক্তার ও জরুরি নাম্বার =====
+var doctors=[];
+try{doctors=JSON.parse(localStorage.getItem('doctors')||'[]')}catch(e){}
+
+function saveDoctors(){localStorage.setItem('doctors',JSON.stringify(doctors));}
+
+function showAddDoctor(){
+var name=prompt('ডাক্তারের নাম:');
+if(!name)return;
+var phone=prompt('ডাক্তারের ফোন নাম্বার:');
+if(!phone)return;
+var spec=prompt('বিশেষত্ব (যেমন: মেডিসিন, হার্ট):')||'';
+doctors.push({id:Date.now(),name:name,phone:phone,spec:spec});
+saveDoctors();renderDoctors();
+}
+
+function renderDoctors(){
+var list=document.getElementById('doctor-list');
+if(!list)return;
+if(doctors.length===0){list.innerHTML='<div class="empty">কোনো ডাক্তার যোগ করা নেই</div>';return}
+var h='';
+doctors.forEach(function(d){
+h+='<div class="rec" style="border-left-color:#38a169">';
+h+='<b>'+d.name+'</b><br>';
+if(d.spec)h+='<span style="font-size:12px;color:#718096">'+d.spec+'</span><br>';
+h+='<a href="tel:'+d.phone+'" style="font-size:16px;color:#2b6cb0;text-decoration:none">📞 '+d.phone+'</a>';
+h+='<div class="row" style="margin-top:6px"><button class="danger" onclick="delDoctor('+d.id+')">🗑️ মুছুন</button></div>';
+h+='</div>';
+});
+list.innerHTML=h;
+}
+
+function delDoctor(id){
+if(!confirm('মুছবেন?'))return;
+doctors=doctors.filter(function(d){return d.id!==id});
+saveDoctors();renderDoctors();
 }
 </script>
 
